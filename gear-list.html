@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>裝備清單｜TrailShare 山旅裝備</title>
+<meta name="description" content="依登山、露營、水上活動篩選裝備，一次比較租借與購買價格、庫存狀態。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L9 8l4 6 3-4 6 10z"/><circle cx="18" cy="6" r="2"/></svg></span>
+      <span>山旅裝備<span class="brand-name-en">TrailShare</span></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">首頁</a>
+      <a href="gear-list.html" class="active">裝備清單</a>
+      <a href="account.html">我的訂單</a>
+    </nav>
+    <div class="header-actions">
+      <a href="checkout.html" class="icon-btn" aria-label="購物車／預約清單">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </a>
+      <a href="account.html" class="icon-btn" aria-label="會員中心">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </a>
+      <button class="menu-toggle" aria-label="開啟選單" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section-tight">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:32px">
+        <span class="eyebrow">裝備清單</span>
+        <h2>找到你需要的裝備</h2>
+        <p>每項裝備都同時標出租借與購買價格，先租來用用看，喜歡再折抵購買。</p>
+      </div>
+
+      <div class="filter-bar">
+        <div class="tab-group" id="activityTabs">
+          <button class="tab-btn" data-activity="all">全部</button>
+          <button class="tab-btn" data-activity="hiking">登山</button>
+          <button class="tab-btn" data-activity="camping">露營</button>
+          <button class="tab-btn" data-activity="water">水上活動</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px;">
+          <span class="result-count" id="resultCount"></span>
+          <select class="sort-select" id="sortSelect">
+            <option value="default">預設排序</option>
+            <option value="rent-asc">租金：由低到高</option>
+            <option value="rent-desc">租金：由高到低</option>
+            <option value="stock-desc">庫存：優先充足</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="gear-grid" id="gearGrid"></div>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l2-8h12l2 8v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>
+        <p>這個分類目前沒有裝備，換個活動看看吧。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="brand" style="margin-bottom:14px">
+          <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L9 8l4 6 3-4 6 10z"/><circle cx="18" cy="6" r="2"/></svg></span>
+          <span>山旅裝備<span class="brand-name-en">TrailShare</span></span>
+        </div>
+        <p>先租再買的戶外裝備平台，讓每一次上山下水都用對裝備。</p>
+      </div>
+      <div class="footer-col">
+        <h4>探索</h4>
+        <ul>
+          <li><a href="gear-list.html?activity=hiking">登山裝備</a></li>
+          <li><a href="gear-list.html?activity=camping">露營裝備</a></li>
+          <li><a href="gear-list.html?activity=water">水上活動裝備</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>服務</h4>
+        <ul>
+          <li><a href="index.html#rent-to-buy">先租後買折抵</a></li>
+          <li><a href="checkout.html">取貨與歸還預約</a></li>
+          <li><a href="account.html">我的訂單</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>聯絡</h4>
+        <ul>
+          <li>hello@trailshare.tw</li>
+          <li>台北市信義區松仁路 100 號</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 TrailShare 山旅裝備</span>
+      <span>本網站為作品集概念原型，商品與訂單資料皆為示範用途，非真實電商服務</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/icons.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>
+  function gearCardHTML(item) {
+    const activity = getActivityById(item.activity);
+    const status = stockStatus(item.stock);
+    return `
+      <a href="product.html?id=${item.id}" class="gear-card">
+        <div class="gear-thumb${item.photo ? ' has-photo' : ''}" data-activity="${item.activity}">
+          ${item.photo ? `<img src="${item.photo}" alt="${item.name}" loading="lazy">` : svgIcon(item.icon)}
+          <span class="stock-badge ${status.key}">${status.label}</span>
+          <span class="difficulty-badge">${item.difficulty}</span>
+        </div>
+        <div class="gear-body">
+          <span class="gear-activity-tag">${activity.name}</span>
+          <h3>${item.name}</h3>
+          <p class="gear-desc">${item.desc}</p>
+          <div class="price-compare">
+            <div class="price-block rent">
+              <div class="pb-label">租借</div>
+              <div class="pb-value">${formatCurrency(item.rentPricePerDay)}<span class="pb-unit">/天</span></div>
+            </div>
+            <div class="price-block buy">
+              <div class="pb-label">購買</div>
+              <div class="pb-value">${formatCurrency(item.buyPrice)}</div>
+            </div>
+          </div>
+        </div>
+      </a>
+    `;
+  }
+
+  const params = new URLSearchParams(location.search);
+  let currentActivity = params.get('activity') || 'all';
+  if (!ACTIVITIES.some((a) => a.id === currentActivity)) currentActivity = 'all';
+  let currentSort = 'default';
+
+  const tabs = document.querySelectorAll('#activityTabs .tab-btn');
+  const grid = document.getElementById('gearGrid');
+  const emptyState = document.getElementById('emptyState');
+  const resultCount = document.getElementById('resultCount');
+  const sortSelect = document.getElementById('sortSelect');
+
+  function render() {
+    tabs.forEach((t) => t.classList.toggle('active', t.dataset.activity === currentActivity));
+
+    let items = currentActivity === 'all'
+      ? GEAR_ITEMS.slice()
+      : GEAR_ITEMS.filter((g) => g.activity === currentActivity);
+
+    if (currentSort === 'rent-asc') items.sort((a, b) => a.rentPricePerDay - b.rentPricePerDay);
+    if (currentSort === 'rent-desc') items.sort((a, b) => b.rentPricePerDay - a.rentPricePerDay);
+    if (currentSort === 'stock-desc') items.sort((a, b) => b.stock - a.stock);
+
+    resultCount.textContent = `共 ${items.length} 項裝備`;
+    grid.style.display = items.length ? 'grid' : 'none';
+    emptyState.style.display = items.length ? 'none' : 'block';
+    grid.innerHTML = items.map(gearCardHTML).join('');
+  }
+
+  tabs.forEach((t) => {
+    t.addEventListener('click', () => {
+      currentActivity = t.dataset.activity;
+      const url = new URL(location.href);
+      if (currentActivity === 'all') url.searchParams.delete('activity');
+      else url.searchParams.set('activity', currentActivity);
+      history.replaceState(null, '', url);
+      render();
+    });
+  });
+
+  sortSelect.addEventListener('change', () => {
+    currentSort = sortSelect.value;
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>

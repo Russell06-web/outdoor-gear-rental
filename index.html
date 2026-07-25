@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrailShare 山旅裝備｜戶外用品先租後買平台</title>
+<meta name="description" content="登山、露營、水上活動裝備先租後買。依活動建立裝備清單、租買比價、尺寸推薦、彈性預約取還，讓你用對裝備再決定要不要買。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L9 8l4 6 3-4 6 10z"/><circle cx="18" cy="6" r="2"/></svg>
+      </span>
+      <span>
+        山旅裝備
+        <span class="brand-name-en">TrailShare</span>
+      </span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html" class="active">首頁</a>
+      <a href="gear-list.html">裝備清單</a>
+      <a href="account.html">我的訂單</a>
+    </nav>
+    <div class="header-actions">
+      <a href="checkout.html" class="icon-btn" aria-label="購物車／預約清單">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </a>
+      <a href="account.html" class="icon-btn" aria-label="會員中心">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </a>
+      <button class="menu-toggle" aria-label="開啟選單" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div class="hero-copy">
+        <span class="eyebrow">戶外裝備・先租後買</span>
+        <h1>不確定要不要買？<br><em>先租來用用看。</em></h1>
+        <p class="lede">登山、露營、水上活動，裝備先租一次體驗，喜歡再用已付租金折抵購買價——不用一開始就砸大錢賭裝備合不合用。</p>
+        <div class="hero-cta-row">
+          <a href="gear-list.html" class="btn btn-primary">
+            瀏覽裝備清單
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg>
+          </a>
+          <a href="#rent-to-buy" class="btn btn-outline">了解先租後買方案</a>
+        </div>
+        <div class="hero-trust">
+          <div class="hero-trust-item"><span class="num">12+</span><span class="label">可租裝備品項</span></div>
+          <div class="hero-trust-item"><span class="num">3</span><span class="label">活動類型</span></div>
+          <div class="hero-trust-item"><span class="num">60%</span><span class="label">租金可折抵購買價</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="assets/images/hero/hero-lifestyle.jpg" alt="營地夕陽下的登山露營情境" class="hero-photo" loading="eager">
+        <div class="hero-photo-scrim"></div>
+        <div class="hv-badge">
+          <span class="dot"></span> 即時庫存同步
+        </div>
+        <div class="hv-card">
+          <div class="hv-title">中筒防水登山鞋</div>
+          <div class="hv-sub">已租 4 天，符合先租後買資格</div>
+          <div class="hv-price-row">
+            <div>
+              <div class="hv-price">NT$ 250<span> / 天租借</span></div>
+            </div>
+            <div style="text-align:right">
+              <div class="hv-price" style="color:var(--color-forest-dark)">NT$ 3,600<span> 購買現折</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">依活動找裝備</span>
+        <h2>先想活動，再挑裝備</h2>
+        <p>不知道從何開始沒關係，選你要去做的活動，我們幫你把常見必備品項整理好。</p>
+      </div>
+      <div class="activity-grid">
+        <a href="gear-list.html?activity=hiking" class="activity-card has-photo" data-activity="hiking">
+          <img src="assets/images/activities/activity-hiking.jpg" alt="" class="ac-photo" loading="lazy">
+          <div class="ac-overlay"></div>
+          <div class="ac-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L9 8l4 6 3-4 6 10z"/><circle cx="18" cy="6" r="2"/></svg></div>
+          <div>
+            <h3>登山</h3>
+            <p>單日健行到多天重裝縱走，鞋子、背包、登山杖一次備齊。</p>
+          </div>
+          <div class="ac-meta">
+            <span>4 項裝備</span>
+            <span class="ac-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </a>
+        <a href="gear-list.html?activity=camping" class="activity-card has-photo" data-activity="camping">
+          <img src="assets/images/activities/activity-camping.jpg" alt="" class="ac-photo" loading="lazy">
+          <div class="ac-overlay"></div>
+          <div class="ac-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20L12 4l9 16"/><path d="M8.5 20L12 12l3.5 8"/></svg></div>
+          <div>
+            <h3>露營</h3>
+            <p>帳篷、睡袋到炊具，第一次露營也能一站租齊。</p>
+          </div>
+          <div class="ac-meta">
+            <span>4 項裝備</span>
+            <span class="ac-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </a>
+        <a href="gear-list.html?activity=water" class="activity-card" data-activity="water">
+          <div class="ac-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 19c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg></div>
+          <div>
+            <h3>水上活動</h3>
+            <p>SUP、浮潛、救生衣，水域安全裝備不用自己買一整套。</p>
+          </div>
+          <div class="ac-meta">
+            <span>4 項裝備</span>
+            <span class="ac-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="rent-to-buy">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">平台特色</span>
+        <h2>不只是租借，更懂新手的困擾</h2>
+        <p>新手最常卡住的三個問題——不知道要準備什麼、高價裝備怕買錯、尺寸跟難度不確定，這裡一次幫你解決。</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="fc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><line x1="12" y1="13" x2="12" y2="22"/></svg></div>
+          <h3>先租後買折抵</h3>
+          <p>已付租金的 60% 可折抵購買價，最高折抵購買價的 50%，用過覺得適合再買不吃虧。</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5"/><line x1="7" y1="8" x2="7" y2="11"/><line x1="11" y1="8" x2="11" y2="11"/><line x1="15" y1="8" x2="15" y2="11"/></svg></div>
+          <h3>裝備尺寸推薦</h3>
+          <p>輸入身高、體重或平常鞋碼，系統幫你推薦合適尺寸，並提示是否符合活動難度。</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg></div>
+          <h3>彈性取貨與歸還</h3>
+          <p>自選取貨與歸還時段，行程異動也能提前調整，不用配合固定營業時間。</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4.5 4.5 0 0 1 17 18H7z"/></svg></div>
+          <h3>天氣與取消保障</h3>
+          <p>遇天氣警特報或活動取消，提供免費改期或退款，戶外行程本來就充滿變數。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head-row" style="margin-bottom: 40px;">
+        <div class="section-head" style="margin-bottom:0">
+          <span class="eyebrow">熱門裝備</span>
+          <h2>先看看大家常租什麼</h2>
+        </div>
+        <a href="gear-list.html" class="btn btn-ghost">查看全部裝備</a>
+      </div>
+      <div class="gear-grid" id="homeGearGrid"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="brand" style="margin-bottom:14px">
+          <span class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L9 8l4 6 3-4 6 10z"/><circle cx="18" cy="6" r="2"/></svg>
+          </span>
+          <span>山旅裝備<span class="brand-name-en">TrailShare</span></span>
+        </div>
+        <p>先租再買的戶外裝備平台，讓每一次上山下水都用對裝備。</p>
+      </div>
+      <div class="footer-col">
+        <h4>探索</h4>
+        <ul>
+          <li><a href="gear-list.html?activity=hiking">登山裝備</a></li>
+          <li><a href="gear-list.html?activity=camping">露營裝備</a></li>
+          <li><a href="gear-list.html?activity=water">水上活動裝備</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>服務</h4>
+        <ul>
+          <li><a href="index.html#rent-to-buy">先租後買折抵</a></li>
+          <li><a href="checkout.html">取貨與歸還預約</a></li>
+          <li><a href="account.html">我的訂單</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>聯絡</h4>
+        <ul>
+          <li>hello@trailshare.tw</li>
+          <li>台北市信義區松仁路 100 號</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 TrailShare 山旅裝備</span>
+      <span>本網站為作品集概念原型，商品與訂單資料皆為示範用途，非真實電商服務</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/icons.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>
+  function gearCardHTML(item) {
+    const activity = getActivityById(item.activity);
+    const status = stockStatus(item.stock);
+    return `
+      <a href="product.html?id=${item.id}" class="gear-card">
+        <div class="gear-thumb${item.photo ? ' has-photo' : ''}" data-activity="${item.activity}">
+          ${item.photo ? `<img src="${item.photo}" alt="${item.name}" loading="lazy">` : svgIcon(item.icon)}
+          <span class="stock-badge ${status.key}">${status.label}</span>
+          <span class="difficulty-badge">${item.difficulty}</span>
+        </div>
+        <div class="gear-body">
+          <span class="gear-activity-tag">${activity.name}</span>
+          <h3>${item.name}</h3>
+          <p class="gear-desc">${item.desc}</p>
+          <div class="price-compare">
+            <div class="price-block rent">
+              <div class="pb-label">租借</div>
+              <div class="pb-value">${formatCurrency(item.rentPricePerDay)}<span class="pb-unit">/天</span></div>
+            </div>
+            <div class="price-block buy">
+              <div class="pb-label">購買</div>
+              <div class="pb-value">${formatCurrency(item.buyPrice)}</div>
+            </div>
+          </div>
+        </div>
+      </a>
+    `;
+  }
+
+  const featuredIds = ['hiking-boots', 'tent-2p', 'sup-board'];
+  document.getElementById('homeGearGrid').innerHTML = featuredIds
+    .map((id) => gearCardHTML(getGearById(id)))
+    .join('');
+</script>
+</body>
+</html>

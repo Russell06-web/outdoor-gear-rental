@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>預約結帳｜TrailShare 山旅裝備</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L9 8l4 6 3-4 6 10z"/><circle cx="18" cy="6" r="2"/></svg></span>
+      <span>山旅裝備<span class="brand-name-en">TrailShare</span></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">首頁</a>
+      <a href="gear-list.html">裝備清單</a>
+      <a href="account.html">我的訂單</a>
+    </nav>
+    <div class="header-actions">
+      <a href="checkout.html" class="icon-btn active" aria-label="購物車／預約清單">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </a>
+      <a href="account.html" class="icon-btn" aria-label="會員中心">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </a>
+      <button class="menu-toggle" aria-label="開啟選單" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section-tight">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:24px">
+        <span class="eyebrow">預約結帳</span>
+        <h2>確認取還方式，完成預約</h2>
+      </div>
+
+      <div id="checkoutWithItems">
+        <div class="checkout-steps">
+          <div class="checkout-step active"><span class="cs-num">1</span> 取還方式</div>
+          <div class="checkout-step active"><span class="cs-num">2</span> 確認裝備</div>
+          <div class="checkout-step active"><span class="cs-num">3</span> 送出預約</div>
+        </div>
+
+        <div class="checkout-layout">
+          <div class="checkout-main">
+
+            <div class="panel">
+              <h2>取貨地點</h2>
+              <p class="panel-desc">選擇離你最近的門市取貨，歸還時可回原門市或指定其他門市。</p>
+              <div class="form-row">
+                <select class="input" id="locationSelect">
+                  <option>台北信義門市</option>
+                  <option>新竹門市</option>
+                  <option>台中大雅門市</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h2>取貨時段</h2>
+              <p class="panel-desc">出發前記得提早 10 分鐘到場，工作人員會協助檢查裝備狀況。</p>
+              <div class="radio-card-group" id="pickupTimeGroup">
+                <label class="radio-card selected">
+                  <input type="radio" name="pickupTime" value="morning" checked>
+                  <div class="rc-title">上午 09:00–12:00</div>
+                  <div class="rc-sub">適合當天要出發的行程</div>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="pickupTime" value="afternoon">
+                  <div class="rc-title">下午 13:00–17:00</div>
+                  <div class="rc-sub">最多人選擇的時段</div>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="pickupTime" value="evening">
+                  <div class="rc-title">傍晚 17:00–19:00</div>
+                  <div class="rc-sub">適合隔天一早出發</div>
+                </label>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h2>歸還時段</h2>
+              <p class="panel-desc">逾時歸還將依實際天數補收租金差額。</p>
+              <div class="radio-card-group" id="returnTimeGroup">
+                <label class="radio-card selected">
+                  <input type="radio" name="returnTime" value="morning" checked>
+                  <div class="rc-title">上午 09:00–12:00</div>
+                  <div class="rc-sub">歸還後立即檢查，最快退還押金</div>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="returnTime" value="afternoon">
+                  <div class="rc-title">下午 13:00–17:00</div>
+                  <div class="rc-sub">最多人選擇的時段</div>
+                </label>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h2>天氣與取消政策</h2>
+              <div class="policy-banner">
+                <div class="pb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4.5 4.5 0 0 1 17 18H7z"/></svg></div>
+                <div>
+                  <h3>戶外行程本來就有變數，我們理解</h3>
+                  <ul>
+                    <li>取貨日當天若中央氣象署對活動所在地發布颱風／豪雨警特報，可免費全額退款或改期，不限次數</li>
+                    <li>非天氣因素之取消，於取貨前 48 小時可全額退款；24–48 小時內取消退還 50%；24 小時內恕不退款</li>
+                    <li>水域活動如遇當地封灘、封海公告，視同不可抗力，全額退款</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h2>本次預約裝備</h2>
+              <p class="panel-desc">確認品項、租借區間與模式，如需調整可回裝備頁重新設定。</p>
+              <div id="checkoutItemList"></div>
+            </div>
+
+          </div>
+
+          <div class="checkout-side">
+            <div class="panel order-summary">
+              <h2>訂單摘要</h2>
+              <div id="summaryLineItems"></div>
+              <div class="summary-totals" id="summaryTotals"></div>
+              <div class="deposit-note">
+                <strong>押金說明：</strong>租借裝備需預先授權裝備原價 30% 作為保證金，歸還完成且確認無損壞後 3 個工作天內解除授權，不會實際請款。
+              </div>
+              <button class="btn btn-primary btn-block" style="margin-top:18px" id="confirmBtn">送出預約</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" id="checkoutEmptyState" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <p>目前預約清單是空的，先去挑選裝備吧。</p>
+        <a href="gear-list.html" class="btn btn-forest" style="margin-top:16px">瀏覽裝備清單</a>
+      </div>
+
+      <div class="empty-state" id="checkoutSuccessState" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>
+        <p>預約已送出！我們會在出發前以簡訊提醒取貨時間。</p>
+        <a href="account.html" class="btn btn-forest" style="margin-top:16px">查看我的訂單</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 TrailShare 山旅裝備</span>
+      <span>本網站為作品集概念原型，商品與訂單資料皆為示範用途，非真實電商服務</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/icons.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.querySelectorAll('.radio-card').forEach((card) => {
+    const input = card.querySelector('input');
+    card.addEventListener('click', () => {
+      const group = document.querySelectorAll(`input[name="${input.name}"]`);
+      group.forEach((i) => i.closest('.radio-card').classList.remove('selected'));
+      input.checked = true;
+      card.classList.add('selected');
+    });
+  });
+
+  function thumbHTML(line) {
+    const gear = getGearById(line.gearId);
+    return gear && gear.photo
+      ? `<img src="${gear.photo}" alt="${line.name}">`
+      : svgIcon(line.icon);
+  }
+
+  function lineItemHTML(line) {
+    const gear = getGearById(line.gearId);
+    const activity = getActivityById(line.activity);
+    const meta = line.mode === 'rent'
+      ? `租借 · ${line.startDate} ~ ${line.endDate}（${line.days} 天）`
+      : `直接購買`;
+    return `
+      <div class="summary-line-item">
+        <div class="sli-thumb gear-thumb${gear && gear.photo ? ' has-photo' : ''}" data-activity="${line.activity}">${thumbHTML(line)}</div>
+        <div class="sli-body">
+          <div class="sli-title">${line.name}</div>
+          <div class="sli-meta">${activity.name} · ${meta}</div>
+        </div>
+        <div class="sli-price">${formatCurrency(line.lineTotal)}</div>
+      </div>
+    `;
+  }
+
+  function checkoutItemRowHTML(line) {
+    const gear = getGearById(line.gearId);
+    const meta = line.mode === 'rent'
+      ? `租借區間：${line.startDate} ~ ${line.endDate}（${line.days} 天 × ${formatCurrency(line.unitPrice)}）`
+      : '模式：直接購買';
+    return `
+      <div class="order-item-row">
+        <div class="oi-thumb gear-thumb${gear && gear.photo ? ' has-photo' : ''}" data-activity="${line.activity}">${thumbHTML(line)}</div>
+        <div style="flex:1">
+          <div class="oi-title">${line.name}</div>
+          <div class="oi-meta">${meta}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="sli-price">${formatCurrency(line.lineTotal)}</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px" data-remove="${line.lineId}">移除</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function render() {
+    const cart = getCart();
+    const withItems = document.getElementById('checkoutWithItems');
+    const emptyState = document.getElementById('checkoutEmptyState');
+
+    if (cart.length === 0) {
+      withItems.style.display = 'none';
+      emptyState.style.display = 'block';
+      return;
+    }
+    withItems.style.display = 'block';
+    emptyState.style.display = 'none';
+
+    document.getElementById('summaryLineItems').innerHTML = cart.map(lineItemHTML).join('');
+    document.getElementById('checkoutItemList').innerHTML = cart.map(checkoutItemRowHTML).join('');
+
+    document.querySelectorAll('[data-remove]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        removeFromCart(btn.dataset.remove);
+        render();
+      });
+    });
+
+    const rentLines = cart.filter((l) => l.mode === 'rent');
+    const buyLines = cart.filter((l) => l.mode === 'buy');
+    const rentSubtotal = rentLines.reduce((sum, l) => sum + l.lineTotal, 0);
+    const buySubtotal = buyLines.reduce((sum, l) => sum + l.lineTotal, 0);
+    const depositEstimate = cart.reduce((sum, l) => {
+      const gear = getGearById(l.gearId);
+      return sum + (l.mode === 'rent' ? gear.buyPrice * 0.3 : 0);
+    }, 0);
+
+    let creditPreviewRow = '';
+    if (rentSubtotal > 0) {
+      creditPreviewRow = `
+        <div class="st-row">
+          <span>若日後購買同款裝備最高可折抵</span>
+          <span class="st-discount">${formatCurrency(rentSubtotal * RENT_TO_BUY_RATE)}</span>
+        </div>`;
+    }
+
+    document.getElementById('summaryTotals').innerHTML = `
+      ${rentSubtotal > 0 ? `<div class="st-row"><span>租借小計</span><span>${formatCurrency(rentSubtotal)}</span></div>` : ''}
+      ${buySubtotal > 0 ? `<div class="st-row"><span>購買小計</span><span>${formatCurrency(buySubtotal)}</span></div>` : ''}
+      ${depositEstimate > 0 ? `<div class="st-row"><span>押金授權（歸還後解除）</span><span>${formatCurrency(depositEstimate)}</span></div>` : ''}
+      ${creditPreviewRow}
+      <div class="st-row grand"><span>今日應付</span><span class="st-num">${formatCurrency(rentSubtotal + buySubtotal)}</span></div>
+    `;
+  }
+
+  document.getElementById('confirmBtn').addEventListener('click', () => {
+    setCart([]);
+    document.getElementById('checkoutWithItems').style.display = 'none';
+    document.getElementById('checkoutEmptyState').style.display = 'none';
+    document.getElementById('checkoutSuccessState').style.display = 'block';
+  });
+
+  render();
+</script>
+</body>
+</html>
