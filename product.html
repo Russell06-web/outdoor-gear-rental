@@ -53,9 +53,9 @@
           <div class="product-tags" id="productTags"></div>
           <p class="lede" id="productDesc"></p>
 
-          <div class="mode-toggle">
-            <button class="mode-btn active" data-mode="rent">租借</button>
-            <button class="mode-btn" data-mode="buy">購買</button>
+          <div class="mode-toggle" role="group" aria-label="選擇租借或購買">
+            <button class="mode-btn active" data-mode="rent" aria-pressed="true">租借</button>
+            <button class="mode-btn" data-mode="buy" aria-pressed="false">購買</button>
           </div>
 
           <div class="stock-status-row" id="stockStatusRow"></div>
@@ -92,7 +92,7 @@
                 <span>購買價格</span>
                 <span class="pp-num" id="buyTotal">NT$ 0</span>
               </div>
-              <p class="pp-note">直接購買現貨，出貨後即為您的裝備；此模式不適用先租後買折抵。</p>
+              <p class="pp-note" id="buyModeNote">購買全新同款商品。若曾租借本商品且符合折抵資格，可於結帳時套用租金折抵。</p>
             </div>
           </div>
 
@@ -101,11 +101,43 @@
             <div class="size-tool" id="sizeTool"></div>
           </div>
 
+          <div class="form-row" id="sizePickWrap" style="display:none">
+            <label for="sizeSelect">選擇實際租借尺寸</label>
+            <select class="input" id="sizeSelect" aria-required="true"></select>
+            <p class="field-hint" id="sizeStockHint" aria-live="polite">請選擇尺寸以查看該尺寸庫存。</p>
+          </div>
+
           <div class="form-row" id="difficultyWrap" style="display:none"></div>
 
           <div class="cta-row">
             <button class="btn btn-primary btn-block" id="addBookingBtn">加入預約清單</button>
           </div>
+        </div>
+      </div>
+
+      <div id="bootExtras" class="boot-extras" style="display:none">
+        <div class="policy-banner tone-success">
+          <div class="pb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg></div>
+          <div>
+            <h3>衛生安心保證</h3>
+            <p>每雙鞋歸還後，皆會完成鞋面與鞋底清潔、鞋墊與鞋帶清潔、鞋內除濕消毒，待完全乾燥並通過鞋底磨耗與功能檢查後，才會重新上架出租。</p>
+            <p class="field-hint" style="margin-top:10px">建議穿著乾淨登山襪試穿，取貨時也可加購全新個人鞋墊。</p>
+          </div>
+        </div>
+
+        <div class="spec-table">
+          <h2 style="font-size:1.15rem; margin-bottom:6px">本件租借裝備狀態</h2>
+          <table>
+            <tbody>
+              <tr><td>裝備編號</td><td>GL-BT-008</td></tr>
+              <tr><td>裝備狀態</td><td>A 級</td></tr>
+              <tr><td>累積租借</td><td>6 次</td></tr>
+              <tr><td>鞋底磨耗</td><td>輕微</td></tr>
+              <tr><td>最近清潔</td><td id="lastCleanedDate"></td></tr>
+              <tr><td>鞋墊</td><td>可拆洗</td></tr>
+            </tbody>
+          </table>
+          <p class="field-hint" style="margin-top:12px">A 級代表外觀可能有輕微使用痕跡，但功能、鞋底抓地力與防水結構皆通過檢查。</p>
         </div>
       </div>
 
@@ -162,23 +194,38 @@
     .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`)
     .join('');
 
-  const status = stockStatus(item.stock);
   function renderStock() {
     const row = document.getElementById('stockStatusRow');
+    if (item.sizeStock) {
+      if (!selectedSize) {
+        row.innerHTML = `<span class="stock-badge in-stock">依尺寸而定</span><span style="color:var(--color-muted); font-size:0.82rem">請先選擇尺寸查看該尺寸庫存。</span>`;
+        return;
+      }
+      const n = item.sizeStock[selectedSize] ?? 0;
+      const st = stockStatus(n, item.unit);
+      row.innerHTML = `<span class="stock-badge ${st.key}">${st.label}</span><span style="color:var(--color-muted); font-size:0.82rem">EU ${selectedSize}｜尚有 ${n} ${item.unit}可供租借／購買。</span>`;
+      return;
+    }
+    const status = stockStatus(item.stock, item.unit);
     const extra = status.key === 'out-stock'
       ? '目前熱門檔期已滿，可先選擇附近日期或改租其他裝備。'
-      : `尚有 ${item.stock} 件可供租借／購買。`;
+      : `尚有 ${item.stock} ${item.unit}可供租借／購買。`;
     row.innerHTML = `<span class="stock-badge ${status.key}">${status.label}</span><span style="color:var(--color-muted); font-size:0.82rem">${extra}</span>`;
   }
-  renderStock();
 
   let mode = 'rent';
+  let selectedSize = null;
+  let recommendedSize = null;
   const modeButtons = document.querySelectorAll('.mode-btn');
   const rentPanel = document.getElementById('rentPanel');
   const buyPanel = document.getElementById('buyPanel');
   modeButtons.forEach((btn) => btn.addEventListener('click', () => {
     mode = btn.dataset.mode;
-    modeButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    modeButtons.forEach((b) => {
+      const active = b === btn;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', String(active));
+    });
     rentPanel.style.display = mode === 'rent' ? 'block' : 'none';
     buyPanel.style.display = mode === 'buy' ? 'block' : 'none';
     updateAddButton();
@@ -224,7 +271,7 @@
         <div class="size-tool-grid">
           <div class="field">
             <label>平常鞋碼（EU）</label>
-            <input type="number" class="input" id="sizeInput1" min="35" max="46" step="0.5" placeholder="例如 40">
+            <input type="number" class="input" id="sizeInput1" min="36" max="45" step="0.5" placeholder="例如 40">
           </div>
           <div class="field">
             <label>此趟是否為多日重裝行程？</label>
@@ -268,7 +315,7 @@
 
     tool.innerHTML = fieldsHTML + `
       <button class="btn btn-forest btn-sm" id="sizeCalcBtn" style="margin-top:14px" type="button">計算建議</button>
-      <div class="size-result" id="sizeResult"></div>
+      <div class="size-result" id="sizeResult" aria-live="polite"></div>
     `;
     document.getElementById('sizeCalcBtn').addEventListener('click', computeSize);
   }
@@ -286,15 +333,31 @@
       return;
     }
 
+    if (item.id === 'hiking-boots' && (v1 < item.sizeMin || v1 > item.sizeMax)) {
+      resultBox.className = 'size-result show';
+      resultBox.innerHTML = `<p style="color:var(--color-danger)">此商品僅提供 EU ${item.sizeMin}–${item.sizeMax} 尺寸，請輸入此範圍內的鞋碼再計算。</p>`;
+      return;
+    }
+
     let badge = '';
     let note = '';
+    let disclaimer = '';
 
     if (item.id === 'hiking-boots') {
       const bump = v2 === 'yes' ? 0.5 : 0;
-      badge = `EU ${v1 + bump}`;
-      note = bump
+      let recommended = Math.round((v1 + bump) * 2) / 2;
+      let clampNote = '';
+      if (recommended > item.sizeMax) {
+        recommended = item.sizeMax;
+        clampNote = `建議尺寸已超出本商品提供的 EU ${item.sizeMin}–${item.sizeMax} 範圍，已為您顯示可租借的最大尺寸 ${item.sizeMax}，請務必實際確認合腳程度。`;
+      }
+      recommendedSize = String(recommended);
+      badge = `EU ${recommended}`;
+      note = (bump
         ? '多日重裝建議加大半號，搭配厚襪更合腳，避免下坡時腳趾頂到鞋頭。'
-        : '與平常鞋碼相同即可，單日行程不需要特別加大。';
+        : '與平常鞋碼相同即可，單日行程不需要特別加大。') + (clampNote ? ' ' + clampNote : '');
+      disclaimer = '此結果僅供選碼參考，不同品牌楦型可能有差異，取貨時仍需實際試穿確認。';
+      renderSizePicker();
     } else if (item.id === 'trekking-poles') {
       const len = Math.round((v1 * 0.68) / 5) * 5;
       badge = `${len} cm`;
@@ -325,7 +388,37 @@
     }
 
     resultBox.className = 'size-result show';
-    resultBox.innerHTML = `<div class="sr-badge">${badge}</div><p>${note}</p>`;
+    resultBox.innerHTML = `<div class="sr-badge">${badge}</div><p>${note}</p>${disclaimer ? `<p class="field-hint" style="margin-top:8px">${disclaimer}</p>` : ''}`;
+  }
+
+  function renderSizePicker() {
+    if (!item.sizeStock) return;
+    const wrap = document.getElementById('sizePickWrap');
+    wrap.style.display = 'block';
+    const select = document.getElementById('sizeSelect');
+    const sizes = Object.keys(item.sizeStock).sort((a, b) => parseFloat(a) - parseFloat(b));
+    const prevValue = select.value;
+    select.innerHTML = '<option value="">請選擇尺寸</option>' + sizes.map((s) => {
+      const n = item.sizeStock[s];
+      const isRecommended = recommendedSize === s;
+      const suffix = isRecommended ? '・建議尺寸' : '';
+      const label = n > 0 ? `EU ${s}（尚有 ${n} ${item.unit}）${suffix}` : `EU ${s}（目前無庫存）`;
+      return `<option value="${s}" ${n > 0 ? '' : 'disabled'}>${label}</option>`;
+    }).join('');
+    select.value = prevValue;
+    if (select.value !== prevValue) select.value = '';
+  }
+
+  function updateSizeStockHint() {
+    const hint = document.getElementById('sizeStockHint');
+    if (!selectedSize) {
+      hint.textContent = '請選擇尺寸以查看該尺寸庫存。';
+      return;
+    }
+    const n = item.sizeStock[selectedSize] ?? 0;
+    hint.textContent = n > 0
+      ? `EU ${selectedSize}｜目前尚有 ${n} ${item.unit}`
+      : `EU ${selectedSize}｜目前無庫存`;
   }
 
   function renderDifficultyCheck() {
@@ -338,7 +431,7 @@
         <option value="experienced">有相關經驗</option>
         <option value="beginner">新手，第一次嘗試</option>
       </select>
-      <div id="mismatchWarning"></div>
+      <div id="mismatchWarning" aria-live="polite"></div>
     `;
     document.getElementById('experienceSelect').addEventListener('change', (e) => {
       const box = document.getElementById('mismatchWarning');
@@ -364,18 +457,26 @@
       btn.disabled = true;
       return;
     }
+    const needsSize = !!item.sizeStock;
+    if (needsSize && !selectedSize) {
+      btn.disabled = true;
+      btn.textContent = '請先選擇租借尺寸';
+      return;
+    }
+    const sizeSuffix = needsSize ? ` · EU ${selectedSize}` : '';
     if (mode === 'rent') {
       const days = daysBetween(startInput.value, endInput.value);
       btn.disabled = days <= 0;
-      btn.textContent = days > 0 ? `加入預約清單 · ${formatCurrency(days * item.rentPricePerDay)}` : '請先選擇日期';
+      btn.textContent = days > 0 ? `加入預約清單${sizeSuffix} · ${formatCurrency(days * item.rentPricePerDay)}` : '請先選擇日期';
     } else {
       btn.disabled = false;
-      btn.textContent = `加入預約清單 · ${formatCurrency(item.buyPrice)}`;
+      btn.textContent = `加入預約清單${sizeSuffix} · ${formatCurrency(item.buyPrice)}`;
     }
   }
 
   document.getElementById('addBookingBtn').addEventListener('click', () => {
     if (item.stock <= 0) return;
+    if (item.sizeStock && !selectedSize) return;
     if (mode === 'rent') {
       const days = daysBetween(startInput.value, endInput.value);
       if (days <= 0) return;
@@ -390,6 +491,8 @@
         days,
         unitPrice: item.rentPricePerDay,
         lineTotal: days * item.rentPricePerDay,
+        selectedSize: selectedSize || undefined,
+        recommendedSize: recommendedSize || undefined,
       });
     } else {
       addToCart({
@@ -399,12 +502,30 @@
         activity: item.activity,
         mode: 'buy',
         lineTotal: item.buyPrice,
+        selectedSize: selectedSize || undefined,
+        recommendedSize: recommendedSize || undefined,
       });
     }
     showToast('已加入預約清單');
   });
 
+  if (item.id === 'hiking-boots') {
+    document.getElementById('bootExtras').style.display = 'block';
+    document.getElementById('lastCleanedDate').textContent = todayStr(-6);
+  }
+
+  renderStock();
   renderSizeTool();
+  renderSizePicker();
+  const sizeSelectEl = document.getElementById('sizeSelect');
+  if (sizeSelectEl) {
+    sizeSelectEl.addEventListener('change', () => {
+      selectedSize = sizeSelectEl.value || null;
+      updateSizeStockHint();
+      renderStock();
+      updateAddButton();
+    });
+  }
   renderDifficultyCheck();
   updatePrice();
 </script>

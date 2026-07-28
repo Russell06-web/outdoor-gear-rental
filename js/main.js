@@ -65,6 +65,8 @@ function showToast(message) {
   if (!toast) {
     toast = document.createElement('div');
     toast.className = 'toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
     document.body.appendChild(toast);
   }
   toast.innerHTML = svgIcon('checkCircle', 'style="width:16px;height:16px;flex-shrink:0"') + '<span></span>';
@@ -78,9 +80,15 @@ function initHeader() {
   const toggle = document.querySelector('.menu-toggle');
   const nav = document.querySelector('.main-nav');
   if (toggle && nav) {
-    toggle.addEventListener('click', () => {
-      const open = nav.classList.toggle('open');
+    const setMenuOpen = (open) => {
+      nav.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? '關閉選單' : '開啟選單');
       toggle.innerHTML = svgIcon(open ? 'close' : 'menu');
+    };
+    toggle.addEventListener('click', () => setMenuOpen(!nav.classList.contains('open')));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && nav.classList.contains('open')) setMenuOpen(false);
     });
   }
   updateCartBadge();

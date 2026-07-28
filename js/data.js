@@ -41,7 +41,7 @@ const GEAR_ITEMS = [
     name: '中筒防水登山鞋',
     activity: 'hiking',
     icon: 'boots',
-    difficulty: '進階',
+    difficulty: '多日重裝適用',
     sizeGuide: 'shoe',
     rentPricePerDay: 250,
     buyPrice: 4200,
@@ -49,6 +49,14 @@ const GEAR_ITEMS = [
     unit: '雙',
     photo: 'assets/images/gear/hiking-boots.jpg',
     desc: 'Vibram 大底、GORE-TEX 防水透氣，適合多日重裝縱走。',
+    sizeMin: 36,
+    sizeMax: 45,
+    sizeStep: 0.5,
+    sizeStock: {
+      '36': 1, '36.5': 1, '37': 2, '37.5': 1, '38': 2, '38.5': 2,
+      '39': 2, '39.5': 1, '40': 3, '40.5': 2, '41': 2, '41.5': 1,
+      '42': 3, '42.5': 2, '43': 2, '43.5': 1, '44': 1, '44.5': 1, '45': 1,
+    },
     specs: [
       ['適用行程', '單日健行～多日重裝縱走'],
       ['鞋碼範圍', 'EU 36–45（含半號）'],
@@ -288,9 +296,10 @@ function getActivityById(id) {
   return ACTIVITIES.find((a) => a.id === id);
 }
 
-function stockStatus(stock) {
+function stockStatus(stock, unit) {
+  const u = unit || '件';
   if (stock <= 0) return { key: 'out-stock', label: '目前額滿' };
-  if (stock <= 3) return { key: 'low-stock', label: `剩 ${stock} 件` };
+  if (stock <= 3) return { key: 'low-stock', label: `剩 ${stock} ${u}` };
   return { key: 'in-stock', label: '庫存充足' };
 }
 

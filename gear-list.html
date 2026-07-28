@@ -46,15 +46,15 @@
       </div>
 
       <div class="filter-bar">
-        <div class="tab-group" id="activityTabs">
-          <button class="tab-btn" data-activity="all">全部</button>
-          <button class="tab-btn" data-activity="hiking">登山</button>
-          <button class="tab-btn" data-activity="camping">露營</button>
-          <button class="tab-btn" data-activity="water">水上活動</button>
+        <div class="tab-group" id="activityTabs" role="group" aria-label="依活動篩選">
+          <button class="tab-btn" data-activity="all" aria-pressed="false">全部</button>
+          <button class="tab-btn" data-activity="hiking" aria-pressed="false">登山</button>
+          <button class="tab-btn" data-activity="camping" aria-pressed="false">露營</button>
+          <button class="tab-btn" data-activity="water" aria-pressed="false">水上活動</button>
         </div>
         <div style="display:flex; align-items:center; gap:16px;">
           <span class="result-count" id="resultCount"></span>
-          <select class="sort-select" id="sortSelect">
+          <select class="sort-select" id="sortSelect" aria-label="裝備排序方式">
             <option value="default">預設排序</option>
             <option value="rent-asc">租金：由低到高</option>
             <option value="rent-desc">租金：由高到低</option>
@@ -63,7 +63,11 @@
         </div>
       </div>
 
-      <div class="gear-grid" id="gearGrid"></div>
+      <div class="empty-state" id="loadingState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><line x1="12" y1="13" x2="12" y2="22"/></svg>
+        <p>裝備資料載入中……</p>
+      </div>
+      <div class="gear-grid" id="gearGrid" style="display:none"></div>
       <div class="empty-state" id="emptyState" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l2-8h12l2 8v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>
         <p>這個分類目前沒有裝備，換個活動看看吧。</p>
@@ -119,7 +123,7 @@
 <script>
   function gearCardHTML(item) {
     const activity = getActivityById(item.activity);
-    const status = stockStatus(item.stock);
+    const status = stockStatus(item.stock, item.unit);
     return `
       <a href="product.html?id=${item.id}" class="gear-card">
         <div class="gear-thumb${item.photo ? ' has-photo' : ''}" data-activity="${item.activity}">
@@ -158,7 +162,11 @@
   const sortSelect = document.getElementById('sortSelect');
 
   function render() {
-    tabs.forEach((t) => t.classList.toggle('active', t.dataset.activity === currentActivity));
+    tabs.forEach((t) => {
+      const active = t.dataset.activity === currentActivity;
+      t.classList.toggle('active', active);
+      t.setAttribute('aria-pressed', String(active));
+    });
 
     let items = currentActivity === 'all'
       ? GEAR_ITEMS.slice()
@@ -190,7 +198,19 @@
     render();
   });
 
-  render();
+  function boot() {
+    const loadingState = document.getElementById('loadingState');
+    try {
+      render();
+      loadingState.style.display = 'none';
+    } catch (err) {
+      console.error(err);
+      loadingState.querySelector('p').textContent = '裝備資料目前無法載入，請重新整理頁面。';
+      grid.style.display = 'none';
+    }
+  }
+
+  boot();
 </script>
 </body>
 </html>

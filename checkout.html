@@ -44,12 +44,6 @@
       </div>
 
       <div id="checkoutWithItems">
-        <div class="checkout-steps">
-          <div class="checkout-step active"><span class="cs-num">1</span> 取還方式</div>
-          <div class="checkout-step active"><span class="cs-num">2</span> 確認裝備</div>
-          <div class="checkout-step active"><span class="cs-num">3</span> 送出預約</div>
-        </div>
-
         <div class="checkout-layout">
           <div class="checkout-main">
 
@@ -135,7 +129,11 @@
               <div class="deposit-note">
                 <strong>押金說明：</strong>租借裝備需預先授權裝備原價 30% 作為保證金，歸還完成且確認無損壞後 3 個工作天內解除授權，不會實際請款。
               </div>
-              <button class="btn btn-primary btn-block" style="margin-top:18px" id="confirmBtn">送出預約</button>
+              <label class="checkbox-row">
+                <input type="checkbox" id="agreeCheckbox">
+                <span>我已確認租借日期、尺寸、取還方式，並同意租借、損壞與取消規則。</span>
+              </label>
+              <button class="btn btn-primary btn-block" style="margin-top:14px" id="confirmBtn" disabled>送出預約</button>
             </div>
           </div>
         </div>
@@ -189,9 +187,16 @@
   function lineItemHTML(line) {
     const gear = getGearById(line.gearId);
     const activity = getActivityById(line.activity);
-    const meta = line.mode === 'rent'
-      ? `租借 · ${line.startDate} ~ ${line.endDate}（${line.days} 天）`
-      : `直接購買`;
+    let meta;
+    if (line.selectedSize) {
+      meta = line.mode === 'rent'
+        ? `租借 · EU ${line.selectedSize} · ${line.startDate}～${line.endDate} · ${line.days} 天`
+        : `直接購買 · EU ${line.selectedSize}`;
+    } else {
+      meta = line.mode === 'rent'
+        ? `租借 · ${line.startDate} ~ ${line.endDate}（${line.days} 天）`
+        : `直接購買`;
+    }
     return `
       <div class="summary-line-item">
         <div class="sli-thumb gear-thumb${gear && gear.photo ? ' has-photo' : ''}" data-activity="${line.activity}">${thumbHTML(line)}</div>
@@ -206,9 +211,10 @@
 
   function checkoutItemRowHTML(line) {
     const gear = getGearById(line.gearId);
-    const meta = line.mode === 'rent'
+    const baseMeta = line.mode === 'rent'
       ? `租借區間：${line.startDate} ~ ${line.endDate}（${line.days} 天 × ${formatCurrency(line.unitPrice)}）`
       : '模式：直接購買';
+    const meta = line.selectedSize ? `尺寸：EU ${line.selectedSize} ・ ${baseMeta}` : baseMeta;
     return `
       <div class="order-item-row">
         <div class="oi-thumb gear-thumb${gear && gear.photo ? ' has-photo' : ''}" data-activity="${line.activity}">${thumbHTML(line)}</div>
@@ -274,7 +280,18 @@
     `;
   }
 
-  document.getElementById('confirmBtn').addEventListener('click', () => {
+  const agreeCheckbox = document.getElementById('agreeCheckbox');
+  const confirmBtn = document.getElementById('confirmBtn');
+  agreeCheckbox.addEventListener('change', () => {
+    confirmBtn.disabled = !agreeCheckbox.checked;
+  });
+
+  confirmBtn.addEventListener('click', () => {
+    if (!agreeCheckbox.checked) return;
+    localStorage.setItem('ogr_last_order', JSON.stringify({
+      items: getCart(),
+      submittedAt: new Date().toISOString(),
+    }));
     setCart([]);
     document.getElementById('checkoutWithItems').style.display = 'none';
     document.getElementById('checkoutEmptyState').style.display = 'none';

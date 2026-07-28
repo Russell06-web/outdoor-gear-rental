@@ -59,12 +59,16 @@
           <div class="hero-trust-item"><span class="num">3</span><span class="label">活動類型</span></div>
           <div class="hero-trust-item"><span class="num">60%</span><span class="label">租金可折抵購買價</span></div>
         </div>
+        <p class="hero-hygiene-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>
+          所有個人穿戴裝備，歸還後均完成清潔、乾燥與功能檢查。
+        </p>
       </div>
       <div class="hero-visual">
         <img src="assets/images/hero/hero-lifestyle.jpg" alt="營地夕陽下的登山露營情境" class="hero-photo" loading="eager">
         <div class="hero-photo-scrim"></div>
         <div class="hv-badge">
-          <span class="dot"></span> 即時庫存同步
+          <span class="dot"></span> 依日期與尺寸確認庫存
         </div>
         <div class="hv-card">
           <div class="hv-title">中筒防水登山鞋</div>
@@ -144,7 +148,7 @@
         <div class="feature-card">
           <div class="fc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><line x1="12" y1="13" x2="12" y2="22"/></svg></div>
           <h3>先租後買折抵</h3>
-          <p>已付租金的 60% 可折抵購買價，最高折抵購買價的 50%，用過覺得適合再買不吃虧。</p>
+          <p>租借後若覺得適合，可將符合資格的租金折抵購買全新同款商品——已付租金的 60% 可折抵購買價，最高折抵購買價的 50%。</p>
         </div>
         <div class="feature-card">
           <div class="fc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5"/><line x1="7" y1="8" x2="7" y2="11"/><line x1="11" y1="8" x2="11" y2="11"/><line x1="15" y1="8" x2="15" y2="11"/></svg></div>
@@ -228,7 +232,7 @@
 <script>
   function gearCardHTML(item) {
     const activity = getActivityById(item.activity);
-    const status = stockStatus(item.stock);
+    const status = stockStatus(item.stock, item.unit);
     return `
       <a href="product.html?id=${item.id}" class="gear-card">
         <div class="gear-thumb${item.photo ? ' has-photo' : ''}" data-activity="${item.activity}">
