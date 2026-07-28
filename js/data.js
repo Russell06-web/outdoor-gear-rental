@@ -107,6 +107,7 @@ const GEAR_ITEMS = [
     buyPrice: 900,
     stock: 20,
     unit: '個',
+    photo: 'assets/images/gear/headlamp.jpg',
     desc: '最大 300 流明，紅光模式不驚擾夜間野生動物。',
     specs: [
       ['亮度', '最大 300 流明'],
@@ -187,6 +188,7 @@ const GEAR_ITEMS = [
     buyPrice: 2400,
     stock: 0,
     unit: '組',
+    photo: 'assets/images/gear/camp-furniture.jpg',
     desc: '一桌四椅，鋁合金骨架，收納後可放入背包側袋。',
     specs: [
       ['組成', '折疊桌 x1、折疊椅 x4'],
@@ -227,6 +229,7 @@ const GEAR_ITEMS = [
     buyPrice: 1200,
     stock: 12,
     unit: '組',
+    photo: 'assets/images/gear/snorkel-set.jpg',
     desc: '乾式呼吸管防嗆水設計，鏡面防霧處理。',
     specs: [
       ['內容物', '面鏡、乾式呼吸管、網袋'],
@@ -246,6 +249,7 @@ const GEAR_ITEMS = [
     buyPrice: 1600,
     stock: 18,
     unit: '件',
+    photo: 'assets/images/gear/life-vest.jpg',
     desc: 'CNS 認證浮力材質，前扣式設計方便穿脫。',
     specs: [
       ['認證', 'CNS 12989 浮力標準'],
@@ -265,6 +269,7 @@ const GEAR_ITEMS = [
     buyPrice: 750,
     stock: 25,
     unit: '個',
+    photo: 'assets/images/gear/dry-bag.jpg',
     desc: '捲口密封防水袋，保護手機、相機等隨身物品。',
     specs: [
       ['容量', '20 公升'],
