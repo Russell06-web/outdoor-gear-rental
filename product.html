@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>裝備詳情｜TrailShare 山旅裝備</title>
+<title>裝備詳情｜GearLoop</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
   <div class="container">
     <a href="index.html" class="brand">
       <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L9 8l4 6 3-4 6 10z"/><circle cx="18" cy="6" r="2"/></svg></span>
-      <span>山旅裝備<span class="brand-name-en">TrailShare</span></span>
+      <span>GearLoop</span>
     </a>
     <nav class="main-nav">
       <a href="index.html">首頁</a>
@@ -121,7 +121,7 @@
 <footer class="site-footer">
   <div class="container">
     <div class="footer-bottom">
-      <span>© 2026 TrailShare 山旅裝備</span>
+      <span>© 2026 GearLoop</span>
       <span>本網站為作品集概念原型，商品與訂單資料皆為示範用途，非真實電商服務</span>
     </div>
   </div>
@@ -135,7 +135,7 @@
   const item = getGearById(params.get('id')) || GEAR_ITEMS[0];
   const activity = getActivityById(item.activity);
 
-  document.title = `${item.name}｜TrailShare 山旅裝備`;
+  document.title = `${item.name}｜GearLoop`;
   document.getElementById('breadcrumbActivity').textContent = activity.name + '裝備';
   document.getElementById('breadcrumbActivity').href = `gear-list.html?activity=${item.activity}`;
   document.getElementById('breadcrumbName').textContent = item.name;
