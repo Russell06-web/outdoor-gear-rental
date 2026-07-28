@@ -23,6 +23,7 @@ const ACTIVITIES = [
     nameEn: 'Water Sports',
     icon: 'waves',
     desc: 'SUP、浮潛與各式水域活動防護裝備',
+    photo: 'assets/images/activities/activity-water.jpg',
   },
 ];
 
@@ -66,6 +67,7 @@ const GEAR_ITEMS = [
     buyPrice: 1800,
     stock: 15,
     unit: '組',
+    photo: 'assets/images/gear/trekking-poles.jpg',
     desc: '三節式快扣，減輕膝蓋負擔，新手上路也適用。',
     specs: [
       ['材質', '碳纖維'],
@@ -145,6 +147,7 @@ const GEAR_ITEMS = [
     buyPrice: 2600,
     stock: 10,
     unit: '個',
+    photo: 'assets/images/gear/sleeping-bag.jpg',
     desc: '舒適溫度 5°C，適合秋冬中低海拔營地過夜。',
     specs: [
       ['舒適溫度', '約 5°C'],
@@ -204,6 +207,7 @@ const GEAR_ITEMS = [
     buyPrice: 15800,
     stock: 3,
     unit: '塊',
+    photo: 'assets/images/gear/sup-board.jpg',
     desc: '充氣式船身，含船槳與打氣筒，適合平靜水域使用。',
     specs: [
       ['尺寸', '320 × 76 × 15 cm'],
