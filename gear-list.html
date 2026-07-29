@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <title>裝備清單｜GearLoop</title>
-<meta name="description" content="依登山、露營、水上活動篩選裝備，一次比較租借與購買價格、庫存狀態。">
+<meta name="description" content="依活動、裝備類型、需求篩選裝備，一次比較租借與購買價格、庫存狀態。">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -53,22 +53,63 @@
         <a href="checklist.html" class="btn btn-outline">建立我的裝備清單</a>
       </div>
 
+      <div class="kit-grid" id="listKitGrid" style="margin-bottom:40px"></div>
+
+      <button type="button" class="filter-toggle-btn btn btn-outline" id="filterToggleBtn" aria-expanded="false" aria-controls="filtersBody">
+        篩選裝備
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+
+      <div class="filters-panel">
+        <div class="filters-body" id="filtersBody">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+            <input type="search" class="search-input" id="searchInput" placeholder="搜尋裝備名稱、品牌或用途" aria-label="搜尋裝備">
+          </div>
+
+          <div class="tab-group" id="activityTabs" role="group" aria-label="依活動篩選" style="margin-top:16px">
+            <button class="tab-btn" data-activity="all" aria-pressed="false">全部活動</button>
+            <button class="tab-btn" data-activity="hiking" aria-pressed="false">登山</button>
+            <button class="tab-btn" data-activity="camping" aria-pressed="false">露營</button>
+            <button class="tab-btn" data-activity="water" aria-pressed="false">水上活動</button>
+          </div>
+
+          <div class="need-tag-row" id="needTagRow" role="group" aria-label="依需求篩選" style="margin-top:16px"></div>
+
+          <div class="filter-row-controls" style="margin-top:16px">
+            <select class="filter-select" id="gearTypeSelect" aria-label="裝備類型篩選">
+              <option value="all">全部裝備類型</option>
+            </select>
+            <select class="filter-select" id="difficultySelect" aria-label="難度篩選">
+              <option value="all">全部難度</option>
+            </select>
+            <select class="filter-select" id="priceSelect" aria-label="價格範圍">
+              <option value="all">不限價格</option>
+              <option value="low">租金 NT$150 以下／天</option>
+              <option value="mid">租金 NT$150–300／天</option>
+              <option value="high">租金 NT$300 以上／天</option>
+            </select>
+            <select class="filter-select" id="weightSelect" aria-label="重量篩選">
+              <option value="all">不限重量</option>
+              <option value="light">1kg 以下</option>
+              <option value="mid">1–3kg</option>
+              <option value="heavy">3kg 以上</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="active-filters-row" id="activeFiltersRow" style="margin-bottom:20px"></div>
+
       <div class="filter-bar">
-        <div class="tab-group" id="activityTabs" role="group" aria-label="依活動篩選">
-          <button class="tab-btn" data-activity="all" aria-pressed="false">全部</button>
-          <button class="tab-btn" data-activity="hiking" aria-pressed="false">登山</button>
-          <button class="tab-btn" data-activity="camping" aria-pressed="false">露營</button>
-          <button class="tab-btn" data-activity="water" aria-pressed="false">水上活動</button>
-        </div>
-        <div style="display:flex; align-items:center; gap:16px;">
-          <span class="result-count" id="resultCount"></span>
-          <select class="sort-select" id="sortSelect" aria-label="裝備排序方式">
-            <option value="default">預設排序</option>
-            <option value="rent-asc">租金：由低到高</option>
-            <option value="rent-desc">租金：由高到低</option>
-            <option value="stock-desc">庫存：優先充足</option>
-          </select>
-        </div>
+        <span class="result-count" id="resultCount"></span>
+        <select class="sort-select" id="sortSelect" aria-label="裝備排序方式">
+          <option value="default">推薦排序</option>
+          <option value="rent-asc">價格：由低到高</option>
+          <option value="rent-desc">價格：由高到低</option>
+          <option value="weight-asc">重量：由輕到重</option>
+          <option value="popular">最受歡迎</option>
+        </select>
       </div>
 
       <div class="empty-state" id="loadingState">
@@ -78,7 +119,8 @@
       <div class="gear-grid" id="gearGrid" style="display:none"></div>
       <div class="empty-state" id="emptyState" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l2-8h12l2 8v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>
-        <p>這個分類目前沒有裝備，換個活動看看吧。</p>
+        <p>目前篩選條件沒有符合的裝備，換個條件看看吧。</p>
+        <button type="button" class="btn btn-outline btn-sm" id="emptyClearBtn" style="margin-top:14px">清除所有篩選</button>
       </div>
     </div>
   </section>
@@ -108,6 +150,7 @@
           <li><a href="index.html#rent-to-buy">先租後買折抵</a></li>
           <li><a href="checkout.html">取貨與歸還預約</a></li>
           <li><a href="account.html">我的訂單</a></li>
+          <li><a href="policies.html">租借規範</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -132,89 +175,212 @@
 <script src="js/cart.js"></script>
 <script src="js/orders.js"></script>
 <script src="js/credits.js"></script>
+<script src="js/compare.js"></script>
+<script src="js/kits.js"></script>
+<script src="js/gear-render.js"></script>
 <script>
-  function gearCardHTML(item) {
-    const activity = getActivityById(item.activity);
-    const status = stockStatus(item.stock, item.unit);
-    return `
-      <a href="product.html?id=${item.id}" class="gear-card">
-        <div class="gear-thumb${item.photo ? ' has-photo' : ''}" data-activity="${item.activity}">
-          ${item.photo ? `<img src="${item.photo}" alt="${item.name}" loading="lazy">` : svgIcon(item.icon)}
-          <span class="stock-badge ${status.key}">${status.label}</span>
-          <span class="difficulty-badge">${item.difficulty}</span>
-        </div>
-        <div class="gear-body">
-          <span class="gear-activity-tag">${activity.name}</span>
-          <h3>${item.name}</h3>
-          <p class="gear-desc">${item.desc}</p>
-          <div class="price-compare">
-            <div class="price-block rent">
-              <div class="pb-label">租借</div>
-              <div class="pb-value">${formatCurrency(item.rentPricePerDay)}<span class="pb-unit">/天</span></div>
-            </div>
-            <div class="price-block buy">
-              <div class="pb-label">購買</div>
-              <div class="pb-value">${formatCurrency(item.buyPrice)}</div>
-            </div>
-          </div>
-          <div class="gear-credit-hint"><strong>60%</strong> 租金可折抵購買價</div>
-        </div>
-      </a>
-    `;
-  }
+  const GEAR_TYPES = ['背包', '帳篷', '睡眠系統', '鞋類與穿戴裝備', '登山杖與配件', '炊具', '水上安全裝備'];
+  const NEED_TAGS = ['新手推薦', '輕量化裝備', '多人套裝', '兩天一夜', '三天以上', '雨天裝備', '熱門租借'];
+  const DIFFICULTIES = [...new Set(GEAR_ITEMS.map((g) => g.difficulty))];
 
   const params = new URLSearchParams(location.search);
-  let currentActivity = params.get('activity') || 'all';
-  if (!ACTIVITIES.some((a) => a.id === currentActivity)) currentActivity = 'all';
-  let currentSort = 'default';
+  let state = {
+    search: '',
+    activity: params.get('activity') || 'all',
+    needTags: [],
+    gearType: 'all',
+    difficulty: 'all',
+    price: 'all',
+    weight: 'all',
+    sort: 'default',
+  };
+  if (!ACTIVITIES.some((a) => a.id === state.activity)) state.activity = 'all';
 
-  const tabs = document.querySelectorAll('#activityTabs .tab-btn');
   const grid = document.getElementById('gearGrid');
   const emptyState = document.getElementById('emptyState');
   const resultCount = document.getElementById('resultCount');
+  const searchInput = document.getElementById('searchInput');
   const sortSelect = document.getElementById('sortSelect');
+  const gearTypeSelect = document.getElementById('gearTypeSelect');
+  const difficultySelect = document.getElementById('difficultySelect');
+  const priceSelect = document.getElementById('priceSelect');
+  const weightSelect = document.getElementById('weightSelect');
+  const activeFiltersRow = document.getElementById('activeFiltersRow');
+  const needTagRow = document.getElementById('needTagRow');
+  const tabs = document.querySelectorAll('#activityTabs .tab-btn');
+
+  GEAR_TYPES.forEach((t) => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    gearTypeSelect.appendChild(opt);
+  });
+  DIFFICULTIES.forEach((d) => {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    difficultySelect.appendChild(opt);
+  });
+  needTagRow.innerHTML = NEED_TAGS.map((t) => `<button type="button" class="need-tag-chip" data-need="${t}" aria-pressed="false">${t}</button>`).join('');
+
+  function defaultState() {
+    return { search: '', activity: 'all', needTags: [], gearType: 'all', difficulty: 'all', price: 'all', weight: 'all', sort: state.sort };
+  }
+
+  function matchesPrice(item) {
+    if (state.price === 'low') return item.rentPricePerDay <= 150;
+    if (state.price === 'mid') return item.rentPricePerDay > 150 && item.rentPricePerDay <= 300;
+    if (state.price === 'high') return item.rentPricePerDay > 300;
+    return true;
+  }
+  function matchesWeight(item) {
+    if (state.weight === 'light') return item.weightKg <= 1;
+    if (state.weight === 'mid') return item.weightKg > 1 && item.weightKg <= 3;
+    if (state.weight === 'heavy') return item.weightKg > 3;
+    return true;
+  }
+
+  function getFilteredItems() {
+    let items = GEAR_ITEMS.slice();
+    const q = state.search.trim().toLowerCase();
+    if (q) items = items.filter((g) => [g.name, g.brand, g.useCase, g.desc].join(' ').toLowerCase().includes(q));
+    if (state.activity !== 'all') items = items.filter((g) => g.activity === state.activity);
+    if (state.gearType !== 'all') items = items.filter((g) => g.gearType === state.gearType);
+    if (state.difficulty !== 'all') items = items.filter((g) => g.difficulty === state.difficulty);
+    if (state.needTags.length) items = items.filter((g) => state.needTags.some((t) => g.needTags.includes(t)));
+    items = items.filter((g) => matchesPrice(g) && matchesWeight(g));
+
+    if (state.sort === 'rent-asc') items.sort((a, b) => a.rentPricePerDay - b.rentPricePerDay);
+    else if (state.sort === 'rent-desc') items.sort((a, b) => b.rentPricePerDay - a.rentPricePerDay);
+    else if (state.sort === 'weight-asc') items.sort((a, b) => a.weightKg - b.weightKg);
+    else if (state.sort === 'popular') {
+      items = items.map((g, i) => ({ g, i })).sort((a, b) => {
+        const pa = a.g.needTags.includes('熱門租借') ? 1 : 0;
+        const pb = b.g.needTags.includes('熱門租借') ? 1 : 0;
+        return pb - pa || a.i - b.i;
+      }).map((x) => x.g);
+    }
+    return items;
+  }
+
+  const FILTER_LABELS = {
+    price: { low: '租金 NT$150 以下／天', mid: '租金 NT$150–300／天', high: '租金 NT$300 以上／天' },
+    weight: { light: '1kg 以下', mid: '1–3kg', heavy: '3kg 以上' },
+  };
+
+  function renderActiveFilters() {
+    const pills = [];
+    if (state.search.trim()) pills.push({ key: 'search', label: `搜尋：${state.search.trim()}` });
+    if (state.activity !== 'all') pills.push({ key: 'activity', label: getActivityById(state.activity).name });
+    if (state.gearType !== 'all') pills.push({ key: 'gearType', label: state.gearType });
+    if (state.difficulty !== 'all') pills.push({ key: 'difficulty', label: state.difficulty });
+    if (state.price !== 'all') pills.push({ key: 'price', label: FILTER_LABELS.price[state.price] });
+    if (state.weight !== 'all') pills.push({ key: 'weight', label: FILTER_LABELS.weight[state.weight] });
+    state.needTags.forEach((t) => pills.push({ key: 'need', label: t, value: t }));
+
+    if (pills.length === 0) {
+      activeFiltersRow.innerHTML = '';
+      return;
+    }
+    activeFiltersRow.innerHTML = pills.map((p) => `
+      <span class="active-filter-pill" data-filter-key="${p.key}" data-filter-value="${p.value || ''}">
+        ${p.label}
+        <button type="button" aria-label="移除「${p.label}」篩選條件">${svgIcon('close', 'style="width:11px;height:11px"')}</button>
+      </span>
+    `).join('') + `<button type="button" class="clear-all-filters" id="clearAllFiltersBtn">清除全部</button>`;
+
+    activeFiltersRow.querySelectorAll('.active-filter-pill button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const pill = btn.closest('.active-filter-pill');
+        const key = pill.dataset.filterKey;
+        if (key === 'search') { state.search = ''; searchInput.value = ''; }
+        else if (key === 'activity') { state.activity = 'all'; }
+        else if (key === 'gearType') { state.gearType = 'all'; gearTypeSelect.value = 'all'; }
+        else if (key === 'difficulty') { state.difficulty = 'all'; difficultySelect.value = 'all'; }
+        else if (key === 'price') { state.price = 'all'; priceSelect.value = 'all'; }
+        else if (key === 'weight') { state.weight = 'all'; weightSelect.value = 'all'; }
+        else if (key === 'need') { state.needTags = state.needTags.filter((t) => t !== pill.dataset.filterValue); }
+        render();
+      });
+    });
+    document.getElementById('clearAllFiltersBtn').addEventListener('click', clearAllFilters);
+  }
+
+  function clearAllFilters() {
+    state = defaultState();
+    searchInput.value = '';
+    gearTypeSelect.value = 'all';
+    difficultySelect.value = 'all';
+    priceSelect.value = 'all';
+    weightSelect.value = 'all';
+    render();
+  }
 
   function render() {
     tabs.forEach((t) => {
-      const active = t.dataset.activity === currentActivity;
+      const active = t.dataset.activity === state.activity;
       t.classList.toggle('active', active);
       t.setAttribute('aria-pressed', String(active));
     });
+    needTagRow.querySelectorAll('.need-tag-chip').forEach((chip) => {
+      const active = state.needTags.includes(chip.dataset.need);
+      chip.classList.toggle('active', active);
+      chip.setAttribute('aria-pressed', String(active));
+    });
 
-    let items = currentActivity === 'all'
-      ? GEAR_ITEMS.slice()
-      : GEAR_ITEMS.filter((g) => g.activity === currentActivity);
-
-    if (currentSort === 'rent-asc') items.sort((a, b) => a.rentPricePerDay - b.rentPricePerDay);
-    if (currentSort === 'rent-desc') items.sort((a, b) => b.rentPricePerDay - a.rentPricePerDay);
-    if (currentSort === 'stock-desc') items.sort((a, b) => b.stock - a.stock);
-
+    const items = getFilteredItems();
     resultCount.textContent = `共 ${items.length} 項裝備`;
     grid.style.display = items.length ? 'grid' : 'none';
     emptyState.style.display = items.length ? 'none' : 'block';
-    grid.innerHTML = items.map(gearCardHTML).join('');
+    renderGearGrid('gearGrid', items);
+    renderActiveFilters();
   }
 
   tabs.forEach((t) => {
     t.addEventListener('click', () => {
-      currentActivity = t.dataset.activity;
+      state.activity = t.dataset.activity;
       const url = new URL(location.href);
-      if (currentActivity === 'all') url.searchParams.delete('activity');
-      else url.searchParams.set('activity', currentActivity);
+      if (state.activity === 'all') url.searchParams.delete('activity');
+      else url.searchParams.set('activity', state.activity);
       history.replaceState(null, '', url);
       render();
     });
   });
 
-  sortSelect.addEventListener('change', () => {
-    currentSort = sortSelect.value;
+  needTagRow.addEventListener('click', (e) => {
+    const chip = e.target.closest('.need-tag-chip');
+    if (!chip) return;
+    const tag = chip.dataset.need;
+    state.needTags = state.needTags.includes(tag)
+      ? state.needTags.filter((t) => t !== tag)
+      : [...state.needTags, tag];
     render();
+  });
+
+  let searchDebounce = null;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => { state.search = searchInput.value; render(); }, 200);
+  });
+  gearTypeSelect.addEventListener('change', () => { state.gearType = gearTypeSelect.value; render(); });
+  difficultySelect.addEventListener('change', () => { state.difficulty = difficultySelect.value; render(); });
+  priceSelect.addEventListener('change', () => { state.price = priceSelect.value; render(); });
+  weightSelect.addEventListener('change', () => { state.weight = weightSelect.value; render(); });
+  sortSelect.addEventListener('change', () => { state.sort = sortSelect.value; render(); });
+  document.getElementById('emptyClearBtn').addEventListener('click', clearAllFilters);
+
+  const filterToggleBtn = document.getElementById('filterToggleBtn');
+  const filtersBody = document.getElementById('filtersBody');
+  filterToggleBtn.addEventListener('click', () => {
+    const open = !filtersBody.classList.contains('open');
+    filtersBody.classList.toggle('open', open);
+    filterToggleBtn.setAttribute('aria-expanded', String(open));
   });
 
   function boot() {
     const loadingState = document.getElementById('loadingState');
     try {
       render();
+      renderKitSection('listKitGrid');
+      renderCompareBar();
       loadingState.style.display = 'none';
     } catch (err) {
       console.error(err);

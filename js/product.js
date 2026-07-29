@@ -29,9 +29,92 @@ if (item.photo) {
   galleryEl.innerHTML = svgIcon(item.icon);
 }
 
-document.getElementById('specTableBody').innerHTML = item.specs
-  .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`)
-  .join('');
+function renderFitGuidance() {
+  const el = document.getElementById('fitGuidanceSection');
+  if (!item.fitGuidance) { el.style.display = 'none'; return; }
+  const { suitable, notSuitable } = item.fitGuidance;
+  el.innerHTML = `
+    <h2 style="font-size:1.15rem; margin-bottom:14px">這件裝備適合你嗎？</h2>
+    <div class="fit-guidance-grid">
+      <div class="fit-guidance-col fit-suitable">
+        <h4>${svgIcon('checkCircle', 'style="width:15px;height:15px"')} 適合</h4>
+        <ul>${suitable.map((s) => `<li>${s}</li>`).join('')}</ul>
+      </div>
+      <div class="fit-guidance-col fit-not-suitable">
+        <h4>${svgIcon('alertTriangle', 'style="width:15px;height:15px"')} 可能不適合</h4>
+        <ul>${notSuitable.map((s) => `<li>${s}</li>`).join('')}</ul>
+      </div>
+    </div>
+  `;
+}
+
+function renderGroupedSpecs() {
+  const groups = groupSpecs(item);
+  document.getElementById('groupedSpecsBody').innerHTML = groups.map((g) => `
+    <div class="spec-group">
+      <h4>${g.name}</h4>
+      <table><tbody>
+        ${g.rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  `).join('');
+}
+
+function renderRentalContents() {
+  const el = document.getElementById('rentalContentsSection');
+  if (!item.rentalContents) { el.style.display = 'none'; return; }
+  el.innerHTML = `
+    <h2 style="font-size:1.15rem; margin-bottom:12px">租借內容物</h2>
+    <ul class="rental-contents-list">
+      ${item.rentalContents.map((c) => `<li>${svgIcon('checkCircle', 'style="width:14px;height:14px"')} ${c}</li>`).join('')}
+    </ul>
+    <p class="field-hint" style="margin-top:12px">以上配件皆包含在租借內，不需另外加購。</p>
+  `;
+}
+
+function renderCleaningSection() {
+  const checklist = getCleaningChecklist(item.gearType);
+  document.getElementById('cleaningSection').innerHTML = `
+    <h2 style="font-size:1.15rem; margin-bottom:6px">清潔與品質標準</h2>
+    <table><tbody>
+      <tr><td>裝備等級</td><td>A 級</td></tr>
+      <tr><td>外觀標準</td><td>可能有輕微使用痕跡</td></tr>
+      ${checklist.map((c) => `<tr><td>檢查項目</td><td>${c}</td></tr>`).join('')}
+    </tbody></table>
+    <p class="field-hint" style="margin-top:12px">A 級代表外觀可能有輕微使用痕跡，但功能與安全相關項目皆通過檢查。實際租借裝備編號會在訂單成立並完成配貨後，於「我的訂單」顯示。</p>
+  `;
+}
+
+function renderFittingSection() {
+  const el = document.getElementById('fittingSection');
+  if (!item.sizeGuide) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = `
+    <h2 style="font-size:1.15rem; margin-bottom:8px">仍不確定尺寸？</h2>
+    <p class="field-hint" style="margin-bottom:14px">可以先到門市實際試穿／試背，確認合適後再決定租借或購買。</p>
+    <button type="button" class="btn btn-outline btn-sm" id="openFittingBtn">預約到店試穿</button>
+  `;
+  document.getElementById('openFittingBtn').addEventListener('click', () => openFittingModal(item));
+}
+
+function renderProductFaq() {
+  const items = getProductFaqItems(item);
+  document.getElementById('productFaqAccordion').innerHTML = items.map((f, i) => `
+    <div class="faq-item">
+      <button type="button" class="faq-question" aria-expanded="false" aria-controls="product-faq-${i}">
+        <span>${f.q}</span>
+        <span class="faq-chevron">${svgIcon('chevronRight')}</span>
+      </button>
+      <div class="faq-answer" id="product-faq-${i}"><p>${f.a}</p></div>
+    </div>
+  `).join('');
+  initFaqAccordion('productFaqAccordion');
+}
+
+function renderRelatedGear() {
+  const related = GEAR_ITEMS.filter((g) => g.activity === item.activity && g.id !== item.id).slice(0, 3);
+  renderGearGrid('relatedGearGrid', related);
+}
 
 let mode = 'rent';
 let selectedSize = null;
@@ -117,14 +200,6 @@ syncDateBounds();
 startInput.addEventListener('change', updatePrice);
 endInput.addEventListener('change', updatePrice);
 
-const rentVsBuyToggle = document.getElementById('rentVsBuyToggle');
-const rentVsBuyTool = document.getElementById('rentVsBuyTool');
-rentVsBuyToggle.addEventListener('click', () => {
-  const open = rentVsBuyTool.style.display === 'none';
-  rentVsBuyTool.style.display = open ? 'block' : 'none';
-  rentVsBuyToggle.setAttribute('aria-expanded', String(open));
-});
-
 document.getElementById('rentVsBuyCalcBtn').addEventListener('click', () => {
   const uses = parseFloat(document.getElementById('usesPerYear').value);
   const days = parseFloat(document.getElementById('daysPerUse').value);
@@ -188,6 +263,7 @@ function renderSizeProfileBanner() {
 
 function renderSizeTool() {
   if (!item.sizeGuide) return;
+  document.getElementById('sizeAdviceSection').style.display = 'block';
   document.getElementById('sizeToolWrap').style.display = 'block';
   const tool = document.getElementById('sizeTool');
   let fieldsHTML = '';
@@ -531,13 +607,18 @@ document.getElementById('addBookingBtn').addEventListener('click', () => {
   performAdd();
 });
 
-if (item.id === 'hiking-boots') {
-  document.getElementById('bootExtras').style.display = 'block';
-}
-
 renderStock();
 renderSizeProfileBanner();
 renderSizeTool();
 renderSizePicker();
 renderDifficultyCheck();
 updatePrice();
+
+renderFitGuidance();
+renderGroupedSpecs();
+renderRentalContents();
+renderCleaningSection();
+renderFittingSection();
+renderProductFaq();
+renderRelatedGear();
+renderCompareBar();

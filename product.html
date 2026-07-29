@@ -96,33 +96,6 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <button type="button" class="btn btn-ghost btn-sm" id="rentVsBuyToggle" aria-expanded="false">
-              租還是買？幫我算一下
-            </button>
-            <div class="size-tool" id="rentVsBuyTool" style="display:none; margin-top:12px">
-              <div class="size-tool-grid">
-                <div class="field">
-                  <label for="usesPerYear">預計一年使用幾次</label>
-                  <input type="number" class="input" id="usesPerYear" min="1" max="50" placeholder="例如 2">
-                </div>
-                <div class="field">
-                  <label for="daysPerUse">每次使用幾天</label>
-                  <input type="number" class="input" id="daysPerUse" min="1" max="30" placeholder="例如 3">
-                </div>
-              </div>
-              <button class="btn btn-forest btn-sm" id="rentVsBuyCalcBtn" style="margin-top:14px" type="button">計算比較</button>
-              <div class="size-result" id="rentVsBuyResult" aria-live="polite"></div>
-            </div>
-          </div>
-
-          <div class="form-row" id="sizeProfileBanner" style="display:none"></div>
-
-          <div class="form-row" id="sizeToolWrap" style="display:none">
-            <label>裝備尺寸推薦</label>
-            <div class="size-tool" id="sizeTool"></div>
-          </div>
-
           <div class="form-row" id="sizePickWrap" style="display:none">
             <label for="sizeSelect" id="sizeSelectLabel">選擇實際租借尺寸</label>
             <select class="input" id="sizeSelect" aria-required="true"></select>
@@ -139,37 +112,75 @@
         </div>
       </div>
 
-      <div id="bootExtras" class="boot-extras" style="display:none">
-        <div class="policy-banner tone-success">
-          <div class="pb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg></div>
-          <div>
-            <h3>衛生安心保證</h3>
-            <p>每雙鞋歸還後，皆會完成鞋面與鞋底清潔、鞋墊與鞋帶清潔、鞋內除濕消毒，待完全乾燥並通過鞋底磨耗與功能檢查後，才會重新上架出租。</p>
-            <p class="field-hint" style="margin-top:10px">建議穿著乾淨登山襪試穿，取貨時也可加購全新個人鞋墊。</p>
-          </div>
-        </div>
+      <!-- 適合情境 -->
+      <div class="spec-table" id="fitGuidanceSection"></div>
 
-        <div class="spec-table">
-          <h2 style="font-size:1.15rem; margin-bottom:6px">租借裝備品質標準</h2>
-          <table>
-            <tbody>
-              <tr><td>裝備等級</td><td>A 級</td></tr>
-              <tr><td>外觀標準</td><td>可能有輕微使用痕跡</td></tr>
-              <tr><td>鞋底檢查</td><td>抓地紋路與磨耗均完成檢查</td></tr>
-              <tr><td>防水檢查</td><td>接縫與防水結構完成檢查</td></tr>
-              <tr><td>鞋墊</td><td>可拆洗</td></tr>
-              <tr><td>清潔流程</td><td>清潔、除濕、乾燥、功能確認後才重新上架</td></tr>
-            </tbody>
-          </table>
-          <p class="field-hint" style="margin-top:12px">A 級代表外觀可能有輕微使用痕跡，但功能、鞋底抓地力與防水結構皆通過檢查。實際租借裝備編號會在訂單成立並完成配貨後，於「我的訂單」顯示。</p>
+      <!-- 主要規格（分組） -->
+      <div class="spec-table" id="groupedSpecsSection">
+        <h2 style="font-size:1.15rem; margin-bottom:12px">主要規格</h2>
+        <div id="groupedSpecsBody"></div>
+      </div>
+
+      <!-- 尺寸與容量建議 -->
+      <div class="spec-table" id="sizeAdviceSection" style="display:none">
+        <h2 style="font-size:1.15rem; margin-bottom:12px">尺寸與容量建議</h2>
+        <div class="form-row" id="sizeProfileBanner" style="display:none"></div>
+        <div class="form-row" id="sizeToolWrap" style="display:none; margin-top:0">
+          <div class="size-tool" id="sizeTool"></div>
         </div>
       </div>
 
+      <!-- 租還是買試算 -->
       <div class="spec-table">
-        <h2 style="font-size:1.15rem; margin-bottom:6px">規格說明</h2>
-        <table>
-          <tbody id="specTableBody"></tbody>
-        </table>
+        <h2 style="font-size:1.15rem; margin-bottom:12px">租還是買？幫我算一下</h2>
+        <div class="size-tool-grid">
+          <div class="field">
+            <label for="usesPerYear">預計一年使用幾次</label>
+            <input type="number" class="input" id="usesPerYear" min="1" max="50" placeholder="例如 2">
+          </div>
+          <div class="field">
+            <label for="daysPerUse">每次使用幾天</label>
+            <input type="number" class="input" id="daysPerUse" min="1" max="30" placeholder="例如 3">
+          </div>
+        </div>
+        <button class="btn btn-forest btn-sm" id="rentVsBuyCalcBtn" style="margin-top:14px" type="button">計算比較</button>
+        <div class="size-result" id="rentVsBuyResult" aria-live="polite"></div>
+      </div>
+
+      <!-- 租借內容物 -->
+      <div class="spec-table" id="rentalContentsSection"></div>
+
+      <!-- 清潔與品質標準 -->
+      <div class="spec-table" id="cleaningSection"></div>
+
+      <!-- 取貨試穿與試背 -->
+      <div class="spec-table" id="fittingSection" style="display:none"></div>
+
+      <!-- 取消及損壞規則摘要 -->
+      <div class="spec-table">
+        <h2 style="font-size:1.15rem; margin-bottom:12px">取消及損壞規則摘要</h2>
+        <ul class="policy-summary-list">
+          <li>取貨前 48 小時取消可全額退款，24～48 小時退還 50%，24 小時內取消不退款。</li>
+          <li>活動地區發布颱風、豪雨或封山封海公告時，可免費改期或退款。</li>
+          <li>正常使用痕跡不另外收費；遺失或不當使用造成的損壞，將依維修或重置費用處理。</li>
+          <li>取貨時進行押金授權，完成歸還檢查後解除。</li>
+        </ul>
+        <a href="policies.html" class="btn btn-outline btn-sm" style="margin-top:16px">查看完整租借規範</a>
+      </div>
+
+      <!-- 情境式常見問題 -->
+      <div class="spec-table" id="productFaqSection">
+        <h2 style="font-size:1.15rem; margin-bottom:6px">常見問題</h2>
+        <div class="faq-list" id="productFaqAccordion"></div>
+      </div>
+
+      <!-- 相關商品 -->
+      <div id="relatedGearSection" style="margin-top:48px">
+        <div class="section-head" style="margin-bottom:24px">
+          <span class="eyebrow">相關商品</span>
+          <h2 style="font-size:1.4rem">你可能也需要</h2>
+        </div>
+        <div class="gear-grid" id="relatedGearGrid"></div>
       </div>
     </div>
   </section>
@@ -191,6 +202,10 @@
 <script src="js/cart.js"></script>
 <script src="js/orders.js"></script>
 <script src="js/credits.js"></script>
+<script src="js/compare.js"></script>
+<script src="js/kits.js"></script>
+<script src="js/gear-render.js"></script>
+<script src="js/fitting.js"></script>
 <script src="js/product.js"></script>
 </body>
 </html>

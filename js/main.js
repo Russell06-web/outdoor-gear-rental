@@ -137,6 +137,24 @@ function initializePrototypeData() {
   if (typeof seedDemoCredits === 'function') seedDemoCredits();
 }
 
+/* ==========================================================================
+   FAQ accordion — plain <button aria-expanded> + height animation, no library.
+   ========================================================================== */
+function initFaqAccordion(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.faq-question').forEach((btn) => {
+    const answer = document.getElementById(btn.getAttribute('aria-controls'));
+    if (!answer) return;
+    answer.style.height = '0px';
+    btn.addEventListener('click', () => {
+      const isOpen = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!isOpen));
+      answer.style.height = isOpen ? '0px' : `${answer.scrollHeight}px`;
+    });
+  });
+}
+
 function initHeader() {
   const toggle = document.querySelector('.menu-toggle');
   const nav = document.querySelector('.main-nav');

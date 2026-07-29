@@ -118,6 +118,23 @@ function completeReturnInspection(orderId) {
   return true;
 }
 
+/* Only orders that haven't started yet (pending_pickup, or a buy order still
+   being prepared) can be cancelled from the account page. */
+function canCancelOrder(order) {
+  const status = deriveOrderStatus(order);
+  return status === 'pending_pickup';
+}
+
+function cancelOrder(orderId) {
+  const orders = getOrders();
+  const idx = orders.findIndex((o) => o.orderId === orderId);
+  if (idx === -1) return false;
+  if (!canCancelOrder(orders[idx])) return false;
+  orders[idx].status = 'cancelled';
+  saveOrders(orders);
+  return true;
+}
+
 /* ==========================================================================
    Migration: fold the old single "last order" snapshot (from before the real
    order system existed) into the orders list, once.
@@ -205,6 +222,7 @@ function seedDemoOrders() {
     ],
     pricing: null,
     agreementAccepted: true,
+    isDemo: true,
   };
 
   const orderB = {
@@ -230,6 +248,7 @@ function seedDemoOrders() {
     ],
     pricing: null,
     agreementAccepted: true,
+    isDemo: true,
   };
 
   const orderC = {
@@ -263,6 +282,7 @@ function seedDemoOrders() {
     ],
     pricing: null,
     agreementAccepted: true,
+    isDemo: true,
   };
 
   [orderA, orderB, orderC].forEach((order) => {
