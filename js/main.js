@@ -1,42 +1,4 @@
-/* Shared utilities: header/nav, cart (localStorage), toast, formatting. Loaded on every page. */
-
-const CART_KEY = 'ogr_cart_v1';
-const SIZE_PROFILE_KEY = 'ogr_size_profile_v1';
-const CHECKLIST_KEY = 'ogr_checklist_v1';
-
-function safeGetJSON(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch (e) {
-    return fallback;
-  }
-}
-
-function safeSetJSON(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-function getSizeProfile() {
-  return safeGetJSON(SIZE_PROFILE_KEY, null);
-}
-
-function setSizeProfile(profile) {
-  return safeSetJSON(SIZE_PROFILE_KEY, profile);
-}
-
-function getChecklistState() {
-  return safeGetJSON(CHECKLIST_KEY, null);
-}
-
-function setChecklistState(state) {
-  return safeSetJSON(CHECKLIST_KEY, state);
-}
+/* Shared utilities: formatting, TW-local dates, toast, modal, header nav. Loaded after storage.js. */
 
 function formatCurrency(n) {
   return 'NT$ ' + Math.round(n).toLocaleString('zh-TW');
@@ -50,49 +12,43 @@ function daysBetween(startStr, endStr) {
   return diff > 0 ? diff : 0;
 }
 
+/* Local (browser) calendar date — avoids the UTC-shift bug from toISOString() near midnight in UTC+8. */
+function localDateString(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function todayStr(offsetDays = 0) {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().slice(0, 10);
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  return localDateString(date);
 }
 
-function getCart() {
-  try {
-    const raw = localStorage.getItem(CART_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
-  }
+/* 'YYYY-MM-DD' -> '2026/08/01' style TW date, for display only.
+   Defensive: also tolerates being passed a full ISO datetime by reading just the date part,
+   and never throws on bad input (returns '' instead of crashing the page). */
+function formatDateTW(dateString) {
+  if (!dateString) return '';
+  const datePart = String(dateString).slice(0, 10);
+  const date = new Date(`${datePart}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('zh-TW', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(date);
 }
 
-function setCart(cart) {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
-  updateCartBadge();
-}
-
-function addToCart(line) {
-  const cart = getCart();
-  line.lineId = 'line_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-  cart.push(line);
-  setCart(cart);
-  return line;
-}
-
-function removeFromCart(lineId) {
-  const cart = getCart().filter((l) => l.lineId !== lineId);
-  setCart(cart);
-}
-
-function cartCount() {
-  return getCart().length;
-}
-
-function updateCartBadge() {
-  document.querySelectorAll('[data-cart-count]').forEach((el) => {
-    const n = cartCount();
-    el.textContent = n;
-    el.style.display = n > 0 ? 'flex' : 'none';
-  });
+/* Full ISO datetime -> TW-local date+time, for display only (storage keeps the raw ISO string). */
+function formatDateTimeTW(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  }).format(date);
 }
 
 let toastTimer = null;
@@ -112,6 +68,75 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
 }
 
+/* ==========================================================================
+   Modal (shared by product.js date-conflict dialog and account.js return-check dialog)
+   ========================================================================== */
+let modalLastFocused = null;
+
+function showModal(innerHTML, { labelledBy } = {}) {
+  closeModal();
+  modalLastFocused = document.activeElement;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'activeModalOverlay';
+  overlay.innerHTML = `
+    <div class="modal-dialog" role="dialog" aria-modal="true" ${labelledBy ? `aria-labelledby="${labelledBy}"` : ''} tabindex="-1">
+      ${innerHTML}
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.body.classList.add('modal-open');
+
+  const dialog = overlay.querySelector('.modal-dialog');
+  const focusable = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  (focusable[0] || dialog).focus();
+
+  function trapFocus(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const items = Array.from(focusable);
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+  overlay.addEventListener('keydown', trapFocus);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+  return overlay;
+}
+
+function closeModal() {
+  const overlay = document.getElementById('activeModalOverlay');
+  if (overlay) overlay.remove();
+  document.body.classList.remove('modal-open');
+  if (modalLastFocused && typeof modalLastFocused.focus === 'function') {
+    modalLastFocused.focus();
+  }
+  modalLastFocused = null;
+}
+
+/* ==========================================================================
+   Prototype demo data seeding — runs once per key, never overwrites real data.
+   Individual seed functions live in orders.js / credits.js; this just calls them
+   in the right order once every script on the page has loaded.
+   ========================================================================== */
+function initializePrototypeData() {
+  if (typeof migrateLastOrder === 'function') migrateLastOrder();
+  if (typeof seedDemoOrders === 'function') seedDemoOrders();
+  if (typeof seedDemoCredits === 'function') seedDemoCredits();
+}
+
 function initHeader() {
   const toggle = document.querySelector('.menu-toggle');
   const nav = document.querySelector('.main-nav');
@@ -127,7 +152,10 @@ function initHeader() {
       if (e.key === 'Escape' && nav.classList.contains('open')) setMenuOpen(false);
     });
   }
-  updateCartBadge();
+  if (typeof updateCartBadge === 'function') updateCartBadge();
 }
 
-document.addEventListener('DOMContentLoaded', initHeader);
+document.addEventListener('DOMContentLoaded', () => {
+  initializePrototypeData();
+  initHeader();
+});

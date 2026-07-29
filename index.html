@@ -71,16 +71,17 @@
           <span class="dot"></span> 依日期與尺寸確認庫存
         </div>
         <div class="hv-card">
-          <div class="hv-title">中筒防水登山鞋</div>
-          <div class="hv-sub">已租 4 天，符合先租後買資格</div>
+          <div class="hv-title">中筒防水登山鞋 · 先租後買試算</div>
+          <div class="hv-sub">租借 4 天，可累積 NT$ 600 購買折抵</div>
           <div class="hv-price-row">
             <div>
               <div class="hv-price">NT$ 250<span> / 天租借</span></div>
             </div>
             <div style="text-align:right">
-              <div class="hv-price" style="color:var(--color-forest-dark)">NT$ 3,600<span> 購買現折</span></div>
+              <div class="hv-price" style="color:var(--color-forest-dark)">NT$ 3,600<span> 折抵後購買價</span></div>
             </div>
           </div>
+          <p class="hv-disclaimer">以上為試算範例，非目前帳戶的實際紀錄。</p>
         </div>
       </div>
     </div>
@@ -244,7 +245,11 @@
 
 <script src="js/icons.js"></script>
 <script src="js/data.js"></script>
+<script src="js/storage.js"></script>
 <script src="js/main.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/orders.js"></script>
+<script src="js/credits.js"></script>
 <script>
   function gearCardHTML(item) {
     const activity = getActivityById(item.activity);

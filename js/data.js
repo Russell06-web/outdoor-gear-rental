@@ -168,10 +168,16 @@ const GEAR_ITEMS = [
     sizeMin: 36,
     sizeMax: 45,
     sizeStep: 0.5,
-    sizeStock: {
+    /* Rental units are used-but-inspected stock; purchase units are brand-new stock — kept separate on purpose (see getSizeStockForMode). */
+    rentalSizeStock: {
       '36': 1, '36.5': 1, '37': 2, '37.5': 1, '38': 2, '38.5': 2,
       '39': 2, '39.5': 1, '40': 3, '40.5': 2, '41': 2, '41.5': 1,
       '42': 3, '42.5': 2, '43': 2, '43.5': 1, '44': 1, '44.5': 1, '45': 1,
+    },
+    purchaseSizeStock: {
+      '36': 3, '36.5': 2, '37': 4, '37.5': 3, '38': 5, '38.5': 4,
+      '39': 5, '39.5': 3, '40': 6, '40.5': 5, '41': 6, '41.5': 4,
+      '42': 6, '42.5': 4, '43': 5, '43.5': 3, '44': 3, '44.5': 2, '45': 2,
     },
     specs: [
       ['適用行程', '單日健行～多日重裝縱走'],
@@ -419,12 +425,9 @@ function stockStatus(stock, unit) {
   return { key: 'in-stock', label: '庫存充足' };
 }
 
-/* 先租後買折抵規則：已付租金的 60% 可折抵購買價，最高折抵購買價的 50%。 */
-const RENT_TO_BUY_RATE = 0.6;
-const RENT_TO_BUY_CAP_RATIO = 0.5;
-
-function calcRentToBuyCredit(rentPaid, buyPrice) {
-  const raw = rentPaid * RENT_TO_BUY_RATE;
-  const cap = buyPrice * RENT_TO_BUY_CAP_RATIO;
-  return Math.min(raw, cap);
+/* Rent and buy draw from separate stock pools (see GEAR_ITEMS.rentalSizeStock / purchaseSizeStock).
+   Falls back to the legacy single `sizeStock` field if an item hasn't been migrated. */
+function getSizeStockForMode(item, mode) {
+  if (mode === 'buy') return item.purchaseSizeStock || item.sizeStock || null;
+  return item.rentalSizeStock || item.sizeStock || null;
 }

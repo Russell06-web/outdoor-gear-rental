@@ -109,7 +109,11 @@
 
 <script src="js/icons.js"></script>
 <script src="js/data.js"></script>
+<script src="js/storage.js"></script>
 <script src="js/main.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/orders.js"></script>
+<script src="js/credits.js"></script>
 <script>
   const CHECKLIST_ICONS = {
     'day-hike': 'mountain',
@@ -267,26 +271,31 @@
     }
     let added = 0;
     let skipped = [];
+    // Reuse the cart's existing rental date range if one already exists, so bulk-adding
+    // here can never create a same-cart date conflict (see getCartRentalDateRange).
+    const existingRange = getCartRentalDateRange();
+    const start = existingRange ? existingRange.startDate : todayStr(3);
+    const end = existingRange ? existingRange.endDate : todayStr(6);
+    const days = daysBetween(start, end) || 3;
     missing.forEach((id) => {
       const item = getGearById(id);
       if (!item) return;
-      if (item.sizeStock) {
+      if (getSizeStockForMode(item, 'rent')) {
         skipped.push(item.name);
         return;
       }
-      const start = todayStr(3);
-      const end = todayStr(6);
       addToCart({
         gearId: item.id,
         name: item.name,
         icon: item.icon,
+        photo: item.photo || null,
         activity: item.activity,
         mode: 'rent',
         startDate: start,
         endDate: end,
-        days: 3,
+        days,
         unitPrice: item.rentPricePerDay,
-        lineTotal: 3 * item.rentPricePerDay,
+        lineTotal: days * item.rentPricePerDay,
       });
       added += 1;
     });

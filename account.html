@@ -61,151 +61,31 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5"/><line x1="7" y1="8" x2="7" y2="11"/><line x1="11" y1="8" x2="11" y2="11"/><line x1="15" y1="8" x2="15" y2="11"/></svg>
               我的尺寸紀錄
             </a>
-            <a href="#">
+            <button type="button" class="side-nav-item" data-coming-soon>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-11a7 7 0 0 0-14 0c0 4.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
               常用取貨地點
-            </a>
-            <a href="#">
+              <span class="coming-soon-tag">即將推出</span>
+            </button>
+            <button type="button" class="side-nav-item" data-coming-soon>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
               帳戶設定
-            </a>
+              <span class="coming-soon-tag">即將推出</span>
+            </button>
           </nav>
         </aside>
 
         <div class="account-main">
         <div id="view-orders">
 
-          <!-- Order 1: renting now, rent-to-buy progress -->
-          <div class="order-card">
-            <div class="order-card-head">
-              <div>
-                <div class="oc-id">訂單編號 ORD-20260710</div>
-                <div class="oc-date">預約時間：2026-07-20 ~ 2026-07-25</div>
-              </div>
-              <span class="status-pill renting">租借中</span>
-            </div>
+          <div class="order-card" id="creditsSummaryPanel"></div>
 
-            <div class="order-timeline" data-flow="rent" data-current="3"></div>
+          <div id="ordersList"></div>
 
-            <div class="order-item-row">
-              <div class="oi-thumb gear-thumb" data-activity="hiking" id="thumb-boots"></div>
-              <div style="flex:1">
-                <div class="oi-title">中筒防水登山鞋</div>
-                <div class="oi-meta">租借 5 天 · NT$ 250 / 天 · 已付租金 NT$ 1,250</div>
-                <div class="credit-bar-wrap">
-                  <div class="credit-bar-label"><span>先租後買折抵進度</span><span>NT$ 750 / 最高 NT$ 2,100</span></div>
-                  <div class="credit-bar"><div class="credit-bar-fill" style="width:36%"></div></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="order-item-row">
-              <div class="oi-thumb gear-thumb" data-activity="hiking" id="thumb-poles"></div>
-              <div style="flex:1">
-                <div class="oi-title">碳纖登山杖（一對）</div>
-                <div class="oi-meta">租借 5 天 · NT$ 120 / 天 · 已付租金 NT$ 600</div>
-                <div class="credit-bar-wrap">
-                  <div class="credit-bar-label"><span>先租後買折抵進度</span><span>NT$ 360 / 最高 NT$ 900</span></div>
-                  <div class="credit-bar"><div class="credit-bar-fill" style="width:40%"></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Order 2: completed, damage confirmation -->
-          <div class="order-card">
-            <div class="order-card-head">
-              <div>
-                <div class="oc-id">訂單編號 ORD-20260528</div>
-                <div class="oc-date">租借時間：2026-05-28 ~ 2026-06-02（已歸還）</div>
-              </div>
-              <span class="status-pill done">已完成</span>
-            </div>
-
-            <div class="order-timeline" data-flow="rent" data-current="7"></div>
-
-            <div class="order-item-row">
-              <div class="oi-thumb gear-thumb" data-activity="camping" id="thumb-tent"></div>
-              <div style="flex:1">
-                <div class="oi-title">兩人四季帳</div>
-                <div class="oi-meta">租借 5 天 · 已歸還，押金已全額退還</div>
-              </div>
-            </div>
-
-            <div style="margin-top:18px; padding-top:16px; border-top:1px solid var(--color-border)">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
-                <div>
-                  <h3 style="font-size:0.94rem">歸還時商品損壞確認</h3>
-                  <p style="font-size:0.78rem; color:var(--color-muted); margin-top:3px">取貨與歸還時工作人員各拍照一次存證，狀況一致則自動視為「良好」。</p>
-                </div>
-                <button class="btn btn-ghost btn-sm" id="uploadPhotoBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
-                  上傳歸還照片
-                </button>
-              </div>
-              <div class="checklist">
-                <div class="checklist-item">
-                  <span>帳篷本體</span>
-                  <select class="condition-select" data-item="帳篷本體">
-                    <option>良好</option>
-                    <option>輕微耗損</option>
-                    <option>明顯損壞</option>
-                  </select>
-                </div>
-                <div class="checklist-item">
-                  <span>營釘與營繩（6 支）</span>
-                  <select class="condition-select" data-item="營釘與營繩">
-                    <option>良好</option>
-                    <option>輕微耗損</option>
-                    <option>明顯損壞</option>
-                  </select>
-                </div>
-                <div class="checklist-item">
-                  <span>收納袋</span>
-                  <select class="condition-select" data-item="收納袋">
-                    <option>良好</option>
-                    <option>輕微耗損</option>
-                    <option>明顯損壞</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Order 3: pending pickup -->
-          <div class="order-card">
-            <div class="order-card-head">
-              <div>
-                <div class="oc-id">訂單編號 ORD-20260722</div>
-                <div class="oc-date">預計取貨：2026-08-02 上午 09:00–12:00・台北信義門市</div>
-              </div>
-              <span class="status-pill pending">待取貨</span>
-            </div>
-
-            <div class="order-timeline" data-flow="rent" data-current="2"></div>
-
-            <div class="order-item-row">
-              <div class="oi-thumb gear-thumb" data-activity="water" id="thumb-sup"></div>
-              <div style="flex:1">
-                <div class="oi-title">立式划槳板 SUP</div>
-                <div class="oi-meta">模式：直接購買 · NT$ 15,800</div>
-              </div>
-            </div>
-            <div class="order-item-row">
-              <div class="oi-thumb gear-thumb" data-activity="water" id="thumb-vest"></div>
-              <div style="flex:1">
-                <div class="oi-title">成人救生衣</div>
-                <div class="oi-meta">租借 3 天 · NT$ 100 / 天 · 尺寸：M 號</div>
-              </div>
-            </div>
-
-            <div class="policy-banner" style="margin-top:16px">
-              <div class="pb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4.5 4.5 0 0 1 17 18H7z"/></svg></div>
-              <div>
-                <h3>出發前留意天氣</h3>
-                <ul><li>取貨當天若有豪雨或颱風警特報，會主動通知改期或全額退款</li></ul>
-              </div>
-            </div>
+          <div class="empty-state" id="ordersEmptyState" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><line x1="12" y1="13" x2="12" y2="22"/></svg>
+            <p>目前還沒有訂單</p>
+            <p class="field-hint">完成第一次裝備租借或購買後，訂單會顯示在這裡。</p>
+            <a href="gear-list.html" class="btn btn-forest" style="margin-top:16px">瀏覽裝備</a>
           </div>
 
         </div>
@@ -255,6 +135,7 @@
         </div>
 
       </div>
+      </div>
     </div>
   </section>
 </main>
@@ -270,120 +151,11 @@
 
 <script src="js/icons.js"></script>
 <script src="js/data.js"></script>
+<script src="js/storage.js"></script>
 <script src="js/main.js"></script>
-<script>
-  function setThumb(elId, gearId) {
-    const el = document.getElementById(elId);
-    const gear = getGearById(gearId);
-    if (gear && gear.photo) {
-      el.classList.add('has-photo');
-      el.innerHTML = `<img src="${gear.photo}" alt="${gear.name}">`;
-    } else {
-      el.innerHTML = svgIcon(gear.icon);
-    }
-  }
-
-  setThumb('thumb-boots', 'hiking-boots');
-  setThumb('thumb-poles', 'trekking-poles');
-  setThumb('thumb-tent', 'tent-2p');
-  setThumb('thumb-sup', 'sup-board');
-  setThumb('thumb-vest', 'life-vest');
-
-  document.querySelectorAll('.condition-select').forEach((sel) => {
-    sel.addEventListener('change', () => {
-      showToast(`已將「${sel.dataset.item}」狀況標記為：${sel.value}`);
-    });
-  });
-
-  document.getElementById('uploadPhotoBtn').addEventListener('click', () => {
-    showToast('照片已上傳（示範功能，無實際檔案儲存）');
-  });
-
-  const RENT_FLOW = ['預約成立', '門市備貨', '等待取貨', '租借中', '等待歸還', '裝備檢查', '押金解除'];
-  const BUY_FLOW = ['訂單成立', '商品準備', '等待取貨', '訂單完成'];
-
-  function renderTimeline(el) {
-    const flow = el.dataset.flow === 'buy' ? BUY_FLOW : RENT_FLOW;
-    const current = parseInt(el.dataset.current, 10);
-    el.innerHTML = flow.map((label, i) => {
-      const state = i < current ? 'done' : i === current ? 'current' : 'upcoming';
-      const dot = state === 'done'
-        ? svgIcon('checkCircle')
-        : `<span class="ot-dot-num">${i + 1}</span>`;
-      return `
-        <div class="ot-step ${state}">
-          <div class="ot-dot">${dot}</div>
-          <div class="ot-label">${label}</div>
-        </div>`;
-    }).join('<div class="ot-connector"></div>');
-  }
-
-  document.querySelectorAll('.order-timeline').forEach(renderTimeline);
-
-  const views = document.querySelectorAll('[id^="view-"]');
-  const sideNavLinks = document.querySelectorAll('.side-nav a[data-view]');
-
-  function showView(name) {
-    views.forEach((v) => { v.style.display = v.id === `view-${name}` ? 'block' : 'none'; });
-    sideNavLinks.forEach((a) => a.classList.toggle('active', a.dataset.view === name));
-  }
-
-  sideNavLinks.forEach((a) => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      showView(a.dataset.view);
-      history.replaceState(null, '', `#${a.dataset.view}`);
-    });
-  });
-
-  const initialView = location.hash === '#sizes' ? 'sizes' : 'orders';
-  showView(initialView);
-
-  function loadProfileIntoForm() {
-    const profile = getSizeProfile();
-    if (!profile) return;
-    if (profile.height) document.getElementById('profileHeight').value = profile.height;
-    if (profile.weight) document.getElementById('profileWeight').value = profile.weight;
-    if (profile.shoeSizeEU) document.getElementById('profileShoeSize').value = profile.shoeSizeEU;
-    if (profile.footWidth) document.getElementById('profileFootWidth').value = profile.footWidth;
-    if (profile.preferredFit) document.getElementById('profileFit').value = profile.preferredFit;
-    document.getElementById('profileSavedNote').textContent = `上次儲存時間：${profile.savedAt}`;
-  }
-  loadProfileIntoForm();
-
-  document.getElementById('saveProfileBtn').addEventListener('click', () => {
-    const height = parseFloat(document.getElementById('profileHeight').value) || null;
-    const weight = parseFloat(document.getElementById('profileWeight').value) || null;
-    const shoeSizeEU = parseFloat(document.getElementById('profileShoeSize').value) || null;
-    if (!shoeSizeEU) {
-      document.getElementById('profileSavedNote').textContent = '請至少填寫平常鞋碼再儲存。';
-      return;
-    }
-    if (shoeSizeEU < 36 || shoeSizeEU > 45) {
-      document.getElementById('profileSavedNote').textContent = '鞋碼請填在 EU 36–45 之間（本站登山鞋提供的範圍）。';
-      return;
-    }
-    const profile = {
-      height,
-      weight,
-      shoeSizeEU,
-      footWidth: document.getElementById('profileFootWidth').value,
-      preferredFit: document.getElementById('profileFit').value,
-      savedAt: todayStr(),
-    };
-    setSizeProfile(profile);
-    document.getElementById('profileSavedNote').textContent = `已儲存（${profile.savedAt}）。之後到登山鞋商品頁會顯示建議試穿尺寸。`;
-    showToast('尺寸紀錄已儲存');
-  });
-
-  document.getElementById('resetProfileBtn').addEventListener('click', () => {
-    document.getElementById('profileHeight').value = '';
-    document.getElementById('profileWeight').value = '';
-    document.getElementById('profileShoeSize').value = '';
-    document.getElementById('profileFootWidth').value = 'regular';
-    document.getElementById('profileFit').value = 'regular';
-    document.getElementById('profileSavedNote').textContent = '';
-  });
-</script>
+<script src="js/cart.js"></script>
+<script src="js/orders.js"></script>
+<script src="js/credits.js"></script>
+<script src="js/account.js"></script>
 </body>
 </html>
