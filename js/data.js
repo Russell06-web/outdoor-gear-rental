@@ -27,6 +27,122 @@ const ACTIVITIES = [
   },
 ];
 
+/* 智慧裝備清單：活動類型、對應問題、必備/建議/依需求裝備（皆對應 GEAR_ITEMS 既有品項，不虛構商品）。 */
+const CHECKLIST_ACTIVITIES = [
+  {
+    id: 'day-hike',
+    name: '單日健行',
+    desc: '當天來回，不過夜的健行行程',
+    questions: [
+      {
+        id: 'difficulty',
+        label: '預計活動難度',
+        type: 'select',
+        options: [
+          { value: 'easy', label: '新手／郊山步道' },
+          { value: 'normal', label: '一般／中級山' },
+          { value: 'hard', label: '挑戰／地形複雜' },
+        ],
+      },
+      {
+        id: 'firstTime',
+        label: '是否第一次參加健行？',
+        type: 'select',
+        options: [
+          { value: 'no', label: '否，有經驗' },
+          { value: 'yes', label: '是，第一次' },
+        ],
+      },
+    ],
+    must: ['hiking-boots', 'trekking-poles'],
+    suggested: ['headlamp', 'dry-bag'],
+    optional: [],
+  },
+  {
+    id: 'multi-day-hike',
+    name: '多日重裝登山',
+    desc: '需過夜、自行背負裝備的縱走行程',
+    questions: [
+      { id: 'days', label: '活動天數', type: 'number', min: 2, max: 14, placeholder: '例如 3' },
+      {
+        id: 'difficulty',
+        label: '預計活動難度',
+        type: 'select',
+        options: [
+          { value: 'normal', label: '一般／傳統路線' },
+          { value: 'hard', label: '挑戰／地形複雜' },
+        ],
+      },
+      {
+        id: 'firstTime',
+        label: '是否第一次挑戰多日縱走？',
+        type: 'select',
+        options: [
+          { value: 'no', label: '否，有經驗' },
+          { value: 'yes', label: '是，第一次' },
+        ],
+      },
+    ],
+    must: ['hiking-boots', 'backpack-60l', 'trekking-poles', 'headlamp'],
+    suggested: ['dry-bag', 'sleeping-bag', 'stove-set'],
+    optional: ['tent-2p'],
+  },
+  {
+    id: 'camping',
+    name: '露營',
+    desc: '營地紮營過夜，含炊事與休憩裝備',
+    questions: [
+      { id: 'days', label: '活動天數', type: 'number', min: 1, max: 14, placeholder: '例如 2' },
+      { id: 'people', label: '參加人數', type: 'number', min: 1, max: 10, placeholder: '例如 2' },
+    ],
+    must: ['tent-2p', 'sleeping-bag'],
+    suggested: ['stove-set', 'headlamp', 'camp-furniture'],
+    optional: ['dry-bag'],
+  },
+  {
+    id: 'sup',
+    name: 'SUP',
+    desc: '立式划槳板水域活動',
+    questions: [
+      {
+        id: 'firstTime',
+        label: '是否第一次嘗試 SUP？',
+        type: 'select',
+        options: [
+          { value: 'no', label: '否，有經驗' },
+          { value: 'yes', label: '是，第一次' },
+        ],
+      },
+    ],
+    must: ['sup-board', 'life-vest'],
+    suggested: ['dry-bag'],
+    optional: [],
+  },
+  {
+    id: 'snorkeling',
+    name: '浮潛',
+    desc: '近岸水域浮潛活動',
+    questions: [
+      {
+        id: 'firstTime',
+        label: '是否第一次浮潛？',
+        type: 'select',
+        options: [
+          { value: 'no', label: '否，有經驗' },
+          { value: 'yes', label: '是，第一次' },
+        ],
+      },
+    ],
+    must: ['snorkel-set', 'life-vest'],
+    suggested: ['dry-bag'],
+    optional: [],
+  },
+];
+
+function getChecklistActivity(id) {
+  return CHECKLIST_ACTIVITIES.find((c) => c.id === id);
+}
+
 /*
   sizeGuide types:
   - 'shoe'   : 依平常鞋碼 + 是否多日重裝，推薦租借鞋碼

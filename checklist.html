@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<title>建立我的裝備清單｜GearLoop</title>
+<meta name="description" content="依活動類型與行程條件，自動產生必備、建議與依需求裝備清單，勾選已有裝備即時算出準備完成度。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="5"/><line x1="17" y1="12" x2="21" y2="12"/></svg></span>
+      <span>GearLoop</span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">首頁</a>
+      <a href="gear-list.html">裝備清單</a>
+      <a href="account.html">我的訂單</a>
+    </nav>
+    <div class="header-actions">
+      <a href="checkout.html" class="icon-btn" aria-label="購物車／預約清單">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </a>
+      <a href="account.html" class="icon-btn" aria-label="會員中心">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </a>
+      <button class="menu-toggle" aria-label="開啟選單" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section-tight">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:32px">
+        <span class="eyebrow">智慧裝備清單</span>
+        <h2>建立我的裝備清單</h2>
+        <p>不知道要準備什麼裝備？選活動、答幾個簡單問題，馬上幫你整理必備與建議清單。</p>
+      </div>
+
+      <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1"><span class="ws-num">1</span> 選擇活動</div>
+        <div class="wizard-step" data-step="2"><span class="ws-num">2</span> 活動條件</div>
+        <div class="wizard-step" data-step="3"><span class="ws-num">3</span> 你的清單</div>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="wizard-panel" id="step1">
+        <div class="checklist-activity-grid" id="activityChoices"></div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="wizard-panel" id="step2" style="display:none">
+        <div class="panel" style="max-width:640px">
+          <h2 id="step2Title"></h2>
+          <p class="panel-desc" id="step2Desc"></p>
+          <div id="step2Questions" style="margin-top:20px"></div>
+          <div class="cta-row" style="margin-top:8px">
+            <button class="btn btn-ghost" type="button" id="backToStep1">上一步</button>
+            <button class="btn btn-primary" type="button" id="generateListBtn">產生清單</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="wizard-panel" id="step3" style="display:none">
+        <div class="panel completion-panel">
+          <div class="completion-row">
+            <div>
+              <h2 id="resultTitle"></h2>
+              <p class="panel-desc">勾選「我已經有」的裝備，完成度會即時更新。</p>
+            </div>
+            <div class="completion-badge">
+              <div class="completion-pct" id="completionPct">0%</div>
+              <div class="completion-label">裝備準備完成度</div>
+            </div>
+          </div>
+          <div class="completion-bar"><div class="completion-bar-fill" id="completionBarFill" style="width:0%"></div></div>
+        </div>
+
+        <div id="resultGroups"></div>
+
+        <div class="cta-row" style="margin-top:8px; flex-wrap:wrap">
+          <button class="btn btn-primary" type="button" id="addMissingBtn">將缺少裝備加入預約清單</button>
+          <button class="btn btn-outline" type="button" id="restartBtn">重新開始</button>
+          <a href="gear-list.html" class="btn btn-ghost">瀏覽全部裝備</a>
+        </div>
+        <p class="field-hint" id="skipSizeNote" style="display:none; margin-top:10px"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 GearLoop</span>
+      <span>本網站為作品集概念原型，商品與訂單資料皆為示範用途，非真實電商服務</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/icons.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>
+  const CHECKLIST_ICONS = {
+    'day-hike': 'mountain',
+    'multi-day-hike': 'backpack',
+    'camping': 'tent',
+    'sup': 'paddleboard',
+    'snorkeling': 'snorkel',
+  };
+
+  let step = 1;
+  let activeActivity = null;
+  let answers = {};
+  let ownedIds = new Set();
+
+  const step1El = document.getElementById('step1');
+  const step2El = document.getElementById('step2');
+  const step3El = document.getElementById('step3');
+  const stepIndicators = document.querySelectorAll('.wizard-step');
+
+  function goToStep(n) {
+    step = n;
+    step1El.style.display = n === 1 ? 'block' : 'none';
+    step2El.style.display = n === 2 ? 'block' : 'none';
+    step3El.style.display = n === 3 ? 'block' : 'none';
+    stepIndicators.forEach((el) => {
+      const s = parseInt(el.dataset.step, 10);
+      el.classList.toggle('active', s === n);
+      el.classList.toggle('done', s < n);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderActivityChoices() {
+    const wrap = document.getElementById('activityChoices');
+    wrap.innerHTML = CHECKLIST_ACTIVITIES.map((a) => `
+      <button type="button" class="checklist-activity-card" data-id="${a.id}">
+        <div class="ac-icon">${svgIcon(CHECKLIST_ICONS[a.id] || 'package')}</div>
+        <h3>${a.name}</h3>
+        <p>${a.desc}</p>
+      </button>
+    `).join('');
+    wrap.querySelectorAll('.checklist-activity-card').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeActivity = getChecklistActivity(btn.dataset.id);
+        answers = {};
+        renderStep2();
+        goToStep(2);
+      });
+    });
+  }
+
+  function renderStep2() {
+    document.getElementById('step2Title').textContent = activeActivity.name;
+    document.getElementById('step2Desc').textContent = activeActivity.desc;
+    const wrap = document.getElementById('step2Questions');
+    wrap.innerHTML = activeActivity.questions.map((q) => {
+      if (q.type === 'select') {
+        return `
+          <div class="form-row">
+            <label for="q-${q.id}">${q.label}</label>
+            <select class="input" id="q-${q.id}" data-qid="${q.id}">
+              ${q.options.map((o) => `<option value="${o.value}">${o.label}</option>`).join('')}
+            </select>
+          </div>`;
+      }
+      return `
+        <div class="form-row">
+          <label for="q-${q.id}">${q.label}</label>
+          <input type="number" class="input" id="q-${q.id}" data-qid="${q.id}" min="${q.min}" max="${q.max}" placeholder="${q.placeholder || ''}">
+        </div>`;
+    }).join('');
+    if (activeActivity.questions.length === 0) {
+      wrap.innerHTML = `<p class="field-hint">這個活動不需要額外設定，直接產生清單即可。</p>`;
+    }
+  }
+
+  document.getElementById('backToStep1').addEventListener('click', () => goToStep(1));
+
+  document.getElementById('generateListBtn').addEventListener('click', () => {
+    answers = {};
+    activeActivity.questions.forEach((q) => {
+      const el = document.getElementById(`q-${q.id}`);
+      answers[q.id] = q.type === 'number' ? parseFloat(el.value) || null : el.value;
+    });
+    ownedIds = new Set();
+    renderStep3();
+    goToStep(3);
+    setChecklistState({ activityId: activeActivity.id, activityName: activeActivity.name, answers, generatedAt: new Date().toISOString() });
+  });
+
+  function groupHTML(title, ids, groupKey) {
+    if (!ids.length) return '';
+    const rows = ids.map((id) => {
+      const item = getGearById(id);
+      if (!item) return '';
+      const checked = ownedIds.has(id) ? 'checked' : '';
+      return `
+        <label class="checklist-row">
+          <input type="checkbox" data-gear-id="${id}" ${checked}>
+          <div class="cr-thumb gear-thumb${item.photo ? ' has-photo' : ''}" data-activity="${item.activity}">
+            ${item.photo ? `<img src="${item.photo}" alt="${item.name}">` : svgIcon(item.icon)}
+          </div>
+          <div class="cr-body">
+            <div class="cr-title">${item.name}</div>
+            <div class="cr-meta">租借 ${formatCurrency(item.rentPricePerDay)}/天 ・ 購買 ${formatCurrency(item.buyPrice)}</div>
+          </div>
+          <a href="product.html?id=${item.id}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">查看商品</a>
+        </label>`;
+    }).join('');
+    return `
+      <div class="checklist-group">
+        <h3 class="checklist-group-title">${title}</h3>
+        <div class="checklist-group-body">${rows}</div>
+      </div>`;
+  }
+
+  function allListedIds() {
+    return [...activeActivity.must, ...activeActivity.suggested, ...activeActivity.optional];
+  }
+
+  function updateCompletion() {
+    const all = allListedIds();
+    const owned = all.filter((id) => ownedIds.has(id)).length;
+    const pct = all.length ? Math.round((owned / all.length) * 100) : 0;
+    document.getElementById('completionPct').textContent = `${pct}%`;
+    document.getElementById('completionBarFill').style.width = `${pct}%`;
+  }
+
+  function renderStep3() {
+    document.getElementById('resultTitle').textContent = `${activeActivity.name}的裝備清單`;
+    const groups = document.getElementById('resultGroups');
+    groups.innerHTML = [
+      groupHTML('必備裝備', activeActivity.must, 'must'),
+      groupHTML('建議攜帶', activeActivity.suggested, 'suggested'),
+      groupHTML('依個人需求', activeActivity.optional, 'optional'),
+    ].join('');
+
+    groups.querySelectorAll('input[type="checkbox"][data-gear-id]').forEach((cb) => {
+      cb.closest('.checklist-row').classList.toggle('owned', cb.checked);
+      cb.addEventListener('change', () => {
+        if (cb.checked) ownedIds.add(cb.dataset.gearId);
+        else ownedIds.delete(cb.dataset.gearId);
+        cb.closest('.checklist-row').classList.toggle('owned', cb.checked);
+        updateCompletion();
+      });
+    });
+    updateCompletion();
+  }
+
+  document.getElementById('addMissingBtn').addEventListener('click', () => {
+    const missing = allListedIds().filter((id) => !ownedIds.has(id));
+    if (missing.length === 0) {
+      showToast('裝備都已經有囉，沒有缺少的項目');
+      return;
+    }
+    let added = 0;
+    let skipped = [];
+    missing.forEach((id) => {
+      const item = getGearById(id);
+      if (!item) return;
+      if (item.sizeStock) {
+        skipped.push(item.name);
+        return;
+      }
+      const start = todayStr(3);
+      const end = todayStr(6);
+      addToCart({
+        gearId: item.id,
+        name: item.name,
+        icon: item.icon,
+        activity: item.activity,
+        mode: 'rent',
+        startDate: start,
+        endDate: end,
+        days: 3,
+        unitPrice: item.rentPricePerDay,
+        lineTotal: 3 * item.rentPricePerDay,
+      });
+      added += 1;
+    });
+    const note = document.getElementById('skipSizeNote');
+    if (skipped.length) {
+      note.style.display = 'block';
+      note.textContent = `${skipped.join('、')} 需要選擇尺寸，請至商品頁選好尺寸再加入預約清單。`;
+    } else {
+      note.style.display = 'none';
+    }
+    if (added > 0) showToast(`已將 ${added} 項缺少裝備加入預約清單`);
+  });
+
+  document.getElementById('restartBtn').addEventListener('click', () => {
+    activeActivity = null;
+    answers = {};
+    ownedIds = new Set();
+    goToStep(1);
+  });
+
+  renderActivityChoices();
+</script>
+</body>
+</html>

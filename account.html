@@ -53,11 +53,11 @@
             </div>
           </div>
           <nav class="side-nav">
-            <a href="#" class="active">
+            <a href="#orders" data-view="orders" class="active">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><line x1="12" y1="13" x2="12" y2="22"/></svg>
               我的訂單
             </a>
-            <a href="#">
+            <a href="#sizes" data-view="sizes">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5"/><line x1="7" y1="8" x2="7" y2="11"/><line x1="11" y1="8" x2="11" y2="11"/><line x1="15" y1="8" x2="15" y2="11"/></svg>
               我的尺寸紀錄
             </a>
@@ -73,6 +73,7 @@
         </aside>
 
         <div class="account-main">
+        <div id="view-orders">
 
           <!-- Order 1: renting now, rent-to-buy progress -->
           <div class="order-card">
@@ -83,6 +84,8 @@
               </div>
               <span class="status-pill renting">租借中</span>
             </div>
+
+            <div class="order-timeline" data-flow="rent" data-current="3"></div>
 
             <div class="order-item-row">
               <div class="oi-thumb gear-thumb" data-activity="hiking" id="thumb-boots"></div>
@@ -118,6 +121,8 @@
               </div>
               <span class="status-pill done">已完成</span>
             </div>
+
+            <div class="order-timeline" data-flow="rent" data-current="7"></div>
 
             <div class="order-item-row">
               <div class="oi-thumb gear-thumb" data-activity="camping" id="thumb-tent"></div>
@@ -177,6 +182,8 @@
               <span class="status-pill pending">待取貨</span>
             </div>
 
+            <div class="order-timeline" data-flow="rent" data-current="2"></div>
+
             <div class="order-item-row">
               <div class="oi-thumb gear-thumb" data-activity="water" id="thumb-sup"></div>
               <div style="flex:1">
@@ -202,6 +209,51 @@
           </div>
 
         </div>
+
+        <div id="view-sizes" style="display:none">
+          <div class="order-card">
+            <h2 style="font-size:1.1rem">我的尺寸紀錄</h2>
+            <p class="panel-desc">儲存身形與鞋碼資料，之後到登山鞋商品頁會自動幫你算出建議試穿尺寸，仍需你自己確認後選擇。</p>
+
+            <div class="size-tool-grid" style="margin-top:20px">
+              <div class="field">
+                <label for="profileHeight">身高（cm）</label>
+                <input type="number" class="input" id="profileHeight" min="120" max="210" placeholder="例如 173">
+              </div>
+              <div class="field">
+                <label for="profileWeight">體重（kg）</label>
+                <input type="number" class="input" id="profileWeight" min="30" max="150" placeholder="例如 80">
+              </div>
+              <div class="field">
+                <label for="profileShoeSize">平常鞋碼（EU）</label>
+                <input type="number" class="input" id="profileShoeSize" min="36" max="45" step="0.5" placeholder="例如 40">
+              </div>
+              <div class="field">
+                <label for="profileFootWidth">腳型</label>
+                <select class="input" id="profileFootWidth">
+                  <option value="narrow">窄</option>
+                  <option value="regular" selected>一般</option>
+                  <option value="wide">寬</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="profileFit">偏好合腳程度</label>
+                <select class="input" id="profileFit">
+                  <option value="snug">合身</option>
+                  <option value="regular" selected>一般</option>
+                  <option value="loose">寬鬆</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="cta-row" style="margin-top:16px">
+              <button class="btn btn-primary" type="button" id="saveProfileBtn">儲存尺寸紀錄</button>
+              <button class="btn btn-ghost" type="button" id="resetProfileBtn">重新計算</button>
+            </div>
+            <p class="field-hint" id="profileSavedNote" aria-live="polite" style="margin-top:10px"></p>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -245,6 +297,92 @@
 
   document.getElementById('uploadPhotoBtn').addEventListener('click', () => {
     showToast('照片已上傳（示範功能，無實際檔案儲存）');
+  });
+
+  const RENT_FLOW = ['預約成立', '門市備貨', '等待取貨', '租借中', '等待歸還', '裝備檢查', '押金解除'];
+  const BUY_FLOW = ['訂單成立', '商品準備', '等待取貨', '訂單完成'];
+
+  function renderTimeline(el) {
+    const flow = el.dataset.flow === 'buy' ? BUY_FLOW : RENT_FLOW;
+    const current = parseInt(el.dataset.current, 10);
+    el.innerHTML = flow.map((label, i) => {
+      const state = i < current ? 'done' : i === current ? 'current' : 'upcoming';
+      const dot = state === 'done'
+        ? svgIcon('checkCircle')
+        : `<span class="ot-dot-num">${i + 1}</span>`;
+      return `
+        <div class="ot-step ${state}">
+          <div class="ot-dot">${dot}</div>
+          <div class="ot-label">${label}</div>
+        </div>`;
+    }).join('<div class="ot-connector"></div>');
+  }
+
+  document.querySelectorAll('.order-timeline').forEach(renderTimeline);
+
+  const views = document.querySelectorAll('[id^="view-"]');
+  const sideNavLinks = document.querySelectorAll('.side-nav a[data-view]');
+
+  function showView(name) {
+    views.forEach((v) => { v.style.display = v.id === `view-${name}` ? 'block' : 'none'; });
+    sideNavLinks.forEach((a) => a.classList.toggle('active', a.dataset.view === name));
+  }
+
+  sideNavLinks.forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      showView(a.dataset.view);
+      history.replaceState(null, '', `#${a.dataset.view}`);
+    });
+  });
+
+  const initialView = location.hash === '#sizes' ? 'sizes' : 'orders';
+  showView(initialView);
+
+  function loadProfileIntoForm() {
+    const profile = getSizeProfile();
+    if (!profile) return;
+    if (profile.height) document.getElementById('profileHeight').value = profile.height;
+    if (profile.weight) document.getElementById('profileWeight').value = profile.weight;
+    if (profile.shoeSizeEU) document.getElementById('profileShoeSize').value = profile.shoeSizeEU;
+    if (profile.footWidth) document.getElementById('profileFootWidth').value = profile.footWidth;
+    if (profile.preferredFit) document.getElementById('profileFit').value = profile.preferredFit;
+    document.getElementById('profileSavedNote').textContent = `上次儲存時間：${profile.savedAt}`;
+  }
+  loadProfileIntoForm();
+
+  document.getElementById('saveProfileBtn').addEventListener('click', () => {
+    const height = parseFloat(document.getElementById('profileHeight').value) || null;
+    const weight = parseFloat(document.getElementById('profileWeight').value) || null;
+    const shoeSizeEU = parseFloat(document.getElementById('profileShoeSize').value) || null;
+    if (!shoeSizeEU) {
+      document.getElementById('profileSavedNote').textContent = '請至少填寫平常鞋碼再儲存。';
+      return;
+    }
+    if (shoeSizeEU < 36 || shoeSizeEU > 45) {
+      document.getElementById('profileSavedNote').textContent = '鞋碼請填在 EU 36–45 之間（本站登山鞋提供的範圍）。';
+      return;
+    }
+    const profile = {
+      height,
+      weight,
+      shoeSizeEU,
+      footWidth: document.getElementById('profileFootWidth').value,
+      preferredFit: document.getElementById('profileFit').value,
+      savedAt: todayStr(),
+    };
+    setSizeProfile(profile);
+    document.getElementById('profileSavedNote').textContent = `已儲存（${profile.savedAt}）。之後到登山鞋商品頁會顯示建議試穿尺寸。`;
+    showToast('尺寸紀錄已儲存');
+  });
+
+  document.getElementById('resetProfileBtn').addEventListener('click', () => {
+    document.getElementById('profileHeight').value = '';
+    document.getElementById('profileWeight').value = '';
+    document.getElementById('profileShoeSize').value = '';
+    document.getElementById('profileFootWidth').value = 'regular';
+    document.getElementById('profileFit').value = 'regular';
+    document.getElementById('profileSavedNote').textContent = '';
   });
 </script>
 </body>

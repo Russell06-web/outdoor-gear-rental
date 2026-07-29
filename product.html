@@ -96,6 +96,28 @@
             </div>
           </div>
 
+          <div class="form-row">
+            <button type="button" class="btn btn-ghost btn-sm" id="rentVsBuyToggle" aria-expanded="false">
+              租還是買？幫我算一下
+            </button>
+            <div class="size-tool" id="rentVsBuyTool" style="display:none; margin-top:12px">
+              <div class="size-tool-grid">
+                <div class="field">
+                  <label for="usesPerYear">預計一年使用幾次</label>
+                  <input type="number" class="input" id="usesPerYear" min="1" max="50" placeholder="例如 2">
+                </div>
+                <div class="field">
+                  <label for="daysPerUse">每次使用幾天</label>
+                  <input type="number" class="input" id="daysPerUse" min="1" max="30" placeholder="例如 3">
+                </div>
+              </div>
+              <button class="btn btn-forest btn-sm" id="rentVsBuyCalcBtn" style="margin-top:14px" type="button">計算比較</button>
+              <div class="size-result" id="rentVsBuyResult" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="form-row" id="sizeProfileBanner" style="display:none"></div>
+
           <div class="form-row" id="sizeToolWrap" style="display:none">
             <label>裝備尺寸推薦</label>
             <div class="size-tool" id="sizeTool"></div>
@@ -259,6 +281,75 @@
   syncDateBounds();
   startInput.addEventListener('change', updatePrice);
   endInput.addEventListener('change', updatePrice);
+
+  const rentVsBuyToggle = document.getElementById('rentVsBuyToggle');
+  const rentVsBuyTool = document.getElementById('rentVsBuyTool');
+  rentVsBuyToggle.addEventListener('click', () => {
+    const open = rentVsBuyTool.style.display === 'none';
+    rentVsBuyTool.style.display = open ? 'block' : 'none';
+    rentVsBuyToggle.setAttribute('aria-expanded', String(open));
+  });
+
+  document.getElementById('rentVsBuyCalcBtn').addEventListener('click', () => {
+    const uses = parseFloat(document.getElementById('usesPerYear').value);
+    const days = parseFloat(document.getElementById('daysPerUse').value);
+    const resultBox = document.getElementById('rentVsBuyResult');
+    if (!uses || uses <= 0 || !days || days <= 0) {
+      resultBox.className = 'size-result show';
+      resultBox.innerHTML = `<p style="color:var(--color-danger)">請先輸入一年使用次數與每次使用天數。</p>`;
+      return;
+    }
+    const rentCost = uses * days * item.rentPricePerDay;
+    const buyCost = item.buyPrice;
+    const breakEvenUse = Math.ceil(buyCost / (days * item.rentPricePerDay));
+    const verdict = uses < breakEvenUse
+      ? '以目前的使用頻率，先租借較划算。'
+      : '以目前的使用頻率，購買可能較划算，可考慮直接購買或留意先租後買折抵。';
+
+    resultBox.className = 'size-result show';
+    resultBox.innerHTML = `
+      <div class="rvb-compare">
+        <div class="rvb-col">
+          <div class="pb-label">租借一年預估費用</div>
+          <div class="rvb-num">${formatCurrency(rentCost)}</div>
+        </div>
+        <div class="rvb-col">
+          <div class="pb-label">直接購買費用</div>
+          <div class="rvb-num">${formatCurrency(buyCost)}</div>
+        </div>
+      </div>
+      <div class="sr-badge" style="margin-top:12px">${verdict}</div>
+      <p style="margin-top:8px">以每次 ${days} 天估算，預估使用第 ${breakEvenUse} 次後，累積租金可能超過購買價格。</p>
+      <p class="field-hint" style="margin-top:8px">此試算未包含保養、收納與裝備汰換成本，僅供決策參考。</p>
+    `;
+  });
+
+  function renderSizeProfileBanner() {
+    if (item.id !== 'hiking-boots') return;
+    const profile = getSizeProfile();
+    if (!profile || !profile.shoeSizeEU) return;
+    const bump = (profile.footWidth === 'wide' || profile.preferredFit === 'loose') ? 0.5 : 0;
+    let suggested = Math.min(item.sizeMax, Math.max(item.sizeMin, profile.shoeSizeEU + bump));
+    const banner = document.getElementById('sizeProfileBanner');
+    banner.style.display = 'block';
+    banner.innerHTML = `
+      <div class="size-tool">
+        <p>根據你的尺寸紀錄，建議優先試穿 <strong>EU ${suggested}</strong>。</p>
+        <div class="cta-row" style="margin-top:10px">
+          <button class="btn btn-forest btn-sm" type="button" id="useProfileBtn">使用我的尺寸紀錄</button>
+          <a href="account.html#sizes" class="btn btn-ghost btn-sm">重新計算</a>
+        </div>
+      </div>
+    `;
+    document.getElementById('useProfileBtn').addEventListener('click', () => {
+      document.getElementById('sizeToolWrap').style.display = 'block';
+      const input1 = document.getElementById('sizeInput1');
+      if (input1) {
+        input1.value = profile.shoeSizeEU;
+        computeSize();
+      }
+    });
+  }
 
   function renderSizeTool() {
     if (!item.sizeGuide) return;
@@ -515,6 +606,7 @@
   }
 
   renderStock();
+  renderSizeProfileBanner();
   renderSizeTool();
   renderSizePicker();
   const sizeSelectEl = document.getElementById('sizeSelect');

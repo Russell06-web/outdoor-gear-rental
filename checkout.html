@@ -113,6 +113,12 @@
               </div>
             </div>
 
+            <div class="panel" id="compatPanel" style="display:none">
+              <h2>裝備組合提醒</h2>
+              <p class="panel-desc">依你目前的預約清單自動檢查，僅供參考，不會擋下送出預約。</p>
+              <div id="compatWarnings"></div>
+            </div>
+
             <div class="panel">
               <h2>本次預約裝備</h2>
               <p class="panel-desc">確認品項、租借區間與模式，如需調整可回裝備頁重新設定。</p>
@@ -230,6 +236,81 @@
     `;
   }
 
+  const dismissedWarnings = new Set();
+
+  function computeCompatWarnings(cart) {
+    const gearIds = cart.map((l) => l.gearId);
+    const has = (id) => gearIds.includes(id);
+    const warnings = [];
+
+    const bootsLine = cart.find((l) => l.gearId === 'hiking-boots');
+    if (bootsLine && !bootsLine.selectedSize) {
+      warnings.push({
+        id: 'boots-no-size',
+        text: '中筒防水登山鞋尚未選擇尺寸，請回商品頁選擇後再送出預約。',
+        href: 'product.html?id=hiking-boots',
+      });
+    }
+
+    if ((has('sup-board') || has('snorkel-set')) && !has('life-vest')) {
+      warnings.push({
+        id: 'water-no-vest',
+        text: '你加入了水上活動裝備，但預約清單中還沒有救生衣，建議一併加入以確保安全。',
+        href: 'product.html?id=life-vest',
+      });
+    }
+
+    if (has('backpack-60l') && !has('headlamp')) {
+      warnings.push({
+        id: 'multiday-no-headlamp',
+        text: '你的活動設定為多日重裝，但目前尚未加入頭燈，建議一併加入。',
+        href: 'product.html?id=headlamp',
+      });
+    }
+
+    const checklist = getChecklistState();
+    if (checklist && checklist.activityId === 'camping' && checklist.answers && checklist.answers.people > 2) {
+      const tentCount = cart.filter((l) => l.gearId === 'tent-2p').length;
+      if (tentCount === 1) {
+        warnings.push({
+          id: 'tent-capacity',
+          text: `你在裝備清單中設定為 ${checklist.answers.people} 人，但目前只有一頂兩人帳，建議加租一頂或確認實際過夜人數。`,
+          href: 'product.html?id=tent-2p',
+        });
+      }
+    }
+
+    return warnings.filter((w) => !dismissedWarnings.has(w.id));
+  }
+
+  function renderCompatWarnings(cart) {
+    const panel = document.getElementById('compatPanel');
+    const warnings = computeCompatWarnings(cart);
+    if (warnings.length === 0) {
+      panel.style.display = 'none';
+      return;
+    }
+    panel.style.display = 'block';
+    document.getElementById('compatWarnings').innerHTML = warnings.map((w) => `
+      <div class="policy-banner tone-warning" style="margin-top:12px">
+        <div class="pb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
+        <div>
+          <p>${w.text}</p>
+          <div class="cta-row" style="margin-top:10px">
+            <a href="${w.href}" class="btn btn-outline btn-sm">查看建議裝備</a>
+            <button type="button" class="btn btn-ghost btn-sm" data-dismiss-warning="${w.id}">忽略此提醒</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    document.querySelectorAll('[data-dismiss-warning]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        dismissedWarnings.add(btn.dataset.dismissWarning);
+        renderCompatWarnings(getCart());
+      });
+    });
+  }
+
   function render() {
     const cart = getCart();
     const withItems = document.getElementById('checkoutWithItems');
@@ -242,6 +323,8 @@
     }
     withItems.style.display = 'block';
     emptyState.style.display = 'none';
+
+    renderCompatWarnings(cart);
 
     document.getElementById('summaryLineItems').innerHTML = cart.map(lineItemHTML).join('');
     document.getElementById('checkoutItemList').innerHTML = cart.map(checkoutItemRowHTML).join('');

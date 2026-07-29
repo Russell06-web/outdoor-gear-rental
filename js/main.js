@@ -1,6 +1,42 @@
 /* Shared utilities: header/nav, cart (localStorage), toast, formatting. Loaded on every page. */
 
 const CART_KEY = 'ogr_cart_v1';
+const SIZE_PROFILE_KEY = 'ogr_size_profile_v1';
+const CHECKLIST_KEY = 'ogr_checklist_v1';
+
+function safeGetJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function safeSetJSON(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function getSizeProfile() {
+  return safeGetJSON(SIZE_PROFILE_KEY, null);
+}
+
+function setSizeProfile(profile) {
+  return safeSetJSON(SIZE_PROFILE_KEY, profile);
+}
+
+function getChecklistState() {
+  return safeGetJSON(CHECKLIST_KEY, null);
+}
+
+function setChecklistState(state) {
+  return safeSetJSON(CHECKLIST_KEY, state);
+}
 
 function formatCurrency(n) {
   return 'NT$ ' + Math.round(n).toLocaleString('zh-TW');
