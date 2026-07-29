@@ -582,6 +582,9 @@ button { cursor: pointer; }
 .price-block.buy .pb-value { color: var(--color-text); }
 .price-block .pb-unit { font-size: 0.68rem; font-weight: 400; color: var(--color-muted); }
 
+.gear-credit-hint { font-size: 0.74rem; color: var(--color-accent-dark); margin-top: -4px; }
+.gear-credit-hint strong { font-family: var(--font-mono); font-weight: 700; }
+
 .gear-card-footer { padding: 0 18px 18px; }
 
 /* ==========================================================================
