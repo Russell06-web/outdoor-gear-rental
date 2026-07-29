@@ -235,18 +235,7 @@ button { cursor: pointer; }
 .hero {
   position: relative;
   padding: 64px 0 96px;
-  overflow: hidden;
-}
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: -20% -10% auto -10%;
-  height: 480px;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(60, 91, 67, 0.16), transparent 55%),
-    radial-gradient(circle at 85% 10%, rgba(217, 127, 53, 0.14), transparent 50%),
-    radial-gradient(circle at 60% 60%, rgba(44, 110, 127, 0.10), transparent 55%);
-  pointer-events: none;
+  background: var(--color-surface-alt);
 }
 .hero .container {
   position: relative;
