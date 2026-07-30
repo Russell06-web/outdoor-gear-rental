@@ -249,6 +249,13 @@
         <div class="cleaning-flow-step"><div class="cf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><line x1="12" y1="13" x2="12" y2="22"/></svg></div><span>配件確認</span></div>
         <div class="cleaning-flow-step"><div class="cf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l2-8h12l2 8v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg></div><span>重新上架</span></div>
       </div>
+      <div class="cleaning-photo-banner">
+        <img src="assets/images/gear/sleeping-bag.jpg" alt="裝備完成整理後才會重新上架出租" loading="lazy">
+        <div class="cleaning-photo-caption">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;color:var(--color-success)"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>
+          每件裝備出租前都通過完整檢查
+        </div>
+      </div>
       <div class="cleaning-groups">
         <div class="cleaning-group">
           <h4>穿戴裝備</h4>
@@ -291,6 +298,10 @@
           <span class="eyebrow">先租後買</span>
           <h2>先租來用用看，喜歡再買</h2>
           <p>租借後若覺得適合，可將符合資格的租金折抵購買全新同款商品，降低第一次購買高價裝備的風險。</p>
+          <div class="rtb-big-stat">
+            <span class="rtb-big-num">60%</span>
+            <span class="rtb-big-label">已付租金最高可折抵購買價，折抵金額無使用期限</span>
+          </div>
           <p class="rtb-rule" id="rtbRuleText"></p>
         </div>
         <div class="rtb-example" id="rtbExample"></div>
@@ -305,7 +316,17 @@
         <span class="eyebrow">常見問題</span>
         <h2>還有其他問題？</h2>
       </div>
-      <div class="faq-list" id="homeFaqAccordion"></div>
+      <div class="faq-layout">
+        <div class="faq-list" id="homeFaqAccordion"></div>
+        <div class="faq-side-panel">
+          <img src="assets/images/activities/activity-water.jpg" alt="" loading="lazy">
+          <div class="faq-side-panel-body">
+            <h3>找不到你要的答案？</h3>
+            <p>取消、天氣改期、押金與損壞的完整規則，都整理在租借規範頁面。</p>
+            <a href="policies.html" class="btn btn-outline btn-sm" style="margin-top:14px">查看完整租借規範</a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -395,7 +416,7 @@
     const netPrice = gear.buyPrice - credit;
 
     document.getElementById('rtbRuleText').textContent =
-      `已付租金的 ${Math.round(RENT_TO_BUY_RATE * 100)}% 可折抵購買價，最高折抵購買價的 ${Math.round(RENT_TO_BUY_CAP_RATIO * 100)}%。`;
+      `折抵金額上限為商品購買價的 ${Math.round(RENT_TO_BUY_CAP_RATIO * 100)}%。`;
 
     document.getElementById('rtbExample').innerHTML = `
       <h4>${gear.name} · 先租後買試算</h4>

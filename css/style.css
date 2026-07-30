@@ -202,7 +202,10 @@ button { cursor: pointer; }
    Sections
    ========================================================================== */
 .section { padding: 88px 0; }
-.section-alt { background: var(--color-surface-alt); }
+/* Deliberately more contrasted than --color-surface-alt (which is shared by
+   buttons/panels/thumbnails elsewhere) — scoped here so homepage section
+   bands actually read as a color change, not just a fixed alternation. */
+.section-alt { background: #E6DDC3; }
 .section-tight { padding: 56px 0; }
 
 .section-head { max-width: 640px; margin: 0 0 40px; }
@@ -361,11 +364,16 @@ button { cursor: pointer; }
 /* ==========================================================================
    Activity cards
    ========================================================================== */
+/* Asymmetric bento layout (one large + two stacked) instead of 3 equal columns —
+   deliberately breaks the "3-card grid" rhythm repeated by the kit and gear
+   sections right below it. */
 .activity-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1.6fr 1fr;
+  grid-auto-rows: 1fr;
   gap: 20px;
 }
+.activity-grid .activity-card:first-child { grid-row: span 2; min-height: 460px; }
 .activity-card {
   position: relative;
   border-radius: var(--radius-lg);
@@ -590,6 +598,23 @@ button { cursor: pointer; }
 .cleaning-group ul { margin: 12px 0 0; padding-left: 18px; font-size: 0.84rem; color: var(--color-muted); }
 .cleaning-group li { margin-bottom: 6px; }
 
+.cleaning-photo-banner { position: relative; border-radius: var(--radius-lg); overflow: hidden; height: 280px; margin: 32px 0; }
+.cleaning-photo-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cleaning-photo-caption {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  background: rgba(255,255,255,0.94);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
 /* ==========================================================================
    Rent-to-buy explainer (先租後買說明)
    ========================================================================== */
@@ -601,6 +626,17 @@ button { cursor: pointer; }
 }
 .rtb-copy p { font-size: 0.96rem; color: var(--color-muted); margin-top: 14px; max-width: 46ch; }
 .rtb-copy .rtb-rule { margin-top: 18px; font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-forest-dark); font-weight: 700; }
+.rtb-big-stat { margin: 26px 0 6px; }
+.rtb-big-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: clamp(3rem, 7vw, 4.75rem);
+  line-height: 1;
+  color: var(--color-forest-dark);
+  letter-spacing: -0.02em;
+}
+.rtb-big-label { display: block; font-size: 0.92rem; color: var(--color-muted); margin-top: 8px; }
 .rtb-example {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -615,6 +651,19 @@ button { cursor: pointer; }
 /* ==========================================================================
    FAQ accordion
    ========================================================================== */
+.faq-layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: start; }
+.faq-side-panel {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  position: sticky;
+  top: 96px;
+}
+.faq-side-panel img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.faq-side-panel-body { padding: 22px 24px; }
+.faq-side-panel-body h3 { font-size: 1rem; }
+.faq-side-panel-body p { font-size: 0.86rem; color: var(--color-muted); margin-top: 8px; }
 .faq-list { max-width: 760px; }
 .faq-item { border-bottom: 1px solid var(--color-border); }
 .faq-question {
@@ -1624,12 +1673,15 @@ body.modal-open { overflow: hidden; }
   .hero .container { grid-template-columns: 1fr; }
   .hero-visual { max-width: 420px; margin: 0 auto; }
   .activity-grid { grid-template-columns: 1fr; }
+  .activity-grid .activity-card:first-child { grid-row: auto; min-height: 220px; }
   .feature-grid { grid-template-columns: repeat(2, 1fr); }
   .gear-grid { grid-template-columns: repeat(2, 1fr); }
   .kit-grid { grid-template-columns: 1fr; }
   .cleaning-flow { grid-template-columns: repeat(3, 1fr); }
   .cleaning-groups { grid-template-columns: 1fr; }
   .rtb-explainer { grid-template-columns: 1fr; }
+  .faq-layout { grid-template-columns: 1fr; }
+  .faq-side-panel { position: static; }
   .product-layout { grid-template-columns: 1fr; }
   .checkout-layout { grid-template-columns: 1fr; }
   .order-summary { position: static; }
@@ -1685,6 +1737,7 @@ body.modal-open { overflow: hidden; }
   .modal-date-compare { grid-template-columns: 1fr; }
   .modal-dialog { padding: 22px; }
   .kit-modal-field-row { grid-template-columns: 1fr; }
+  .cleaning-photo-banner { height: 200px; margin: 24px 0; }
 
   .order-timeline {
     flex-direction: column;
