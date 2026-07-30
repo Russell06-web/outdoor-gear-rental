@@ -10,6 +10,12 @@
 </head>
 <body>
 
+<noscript>
+  <div class="empty-state" style="max-width:640px; margin:32px auto">
+    <p>此頁面需要啟用 JavaScript 才能建立與計算裝備清單，請啟用 JavaScript 後重新整理頁面。</p>
+  </div>
+</noscript>
+
 <header class="site-header">
   <div class="container">
     <a href="index.html" class="brand">
@@ -45,21 +51,25 @@
         <p>不知道要準備什麼裝備？選活動、答幾個簡單問題，馬上幫你整理必備與建議清單。</p>
       </div>
 
-      <div class="wizard-steps">
-        <div class="wizard-step active" data-step="1"><span class="ws-num">1</span> 選擇活動</div>
-        <div class="wizard-step" data-step="2"><span class="ws-num">2</span> 活動條件</div>
-        <div class="wizard-step" data-step="3"><span class="ws-num">3</span> 你的清單</div>
-      </div>
+      <div id="checklistFatalError" style="display:none"></div>
+
+      <div id="checklistWizard">
+      <ol class="wizard-steps" aria-label="建立裝備清單步驟">
+        <li class="wizard-step active" data-step="1" aria-current="step"><span class="ws-num">1</span> 選擇活動</li>
+        <li class="wizard-step" data-step="2"><span class="ws-num">2</span> 活動條件</li>
+        <li class="wizard-step" data-step="3"><span class="ws-num">3</span> 你的清單</li>
+      </ol>
 
       <!-- Step 1 -->
       <div class="wizard-panel" id="step1">
+        <h2 class="visually-hidden" id="step1Title" tabindex="-1">選擇活動</h2>
         <div class="checklist-activity-grid" id="activityChoices"></div>
       </div>
 
       <!-- Step 2 -->
       <div class="wizard-panel" id="step2" style="display:none">
         <div class="panel" style="max-width:640px">
-          <h2 id="step2Title"></h2>
+          <h2 id="step2Title" tabindex="-1"></h2>
           <p class="panel-desc" id="step2Desc"></p>
           <div id="step2Questions" style="margin-top:20px"></div>
           <div class="cta-row" style="margin-top:8px">
@@ -74,25 +84,31 @@
         <div class="panel completion-panel">
           <div class="completion-row">
             <div>
-              <h2 id="resultTitle"></h2>
+              <h2 id="resultTitle" tabindex="-1"></h2>
               <p class="panel-desc">勾選「我已經有」的裝備，完成度會即時更新。</p>
             </div>
-            <div class="completion-badge">
+            <div class="completion-badge" aria-live="polite">
               <div class="completion-pct" id="completionPct">0%</div>
-              <div class="completion-label">裝備準備完成度</div>
+              <div class="completion-label" id="completionLabel">裝備準備完成度</div>
             </div>
           </div>
-          <div class="completion-bar"><div class="completion-bar-fill" id="completionBarFill" style="width:0%"></div></div>
+          <div class="completion-bar" id="completionBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="completionLabel"><div class="completion-bar-fill" id="completionBarFill" style="width:0%"></div></div>
+          <div class="completion-breakdown" aria-live="polite">
+            <span id="mustCompletionText">必備裝備完成度：0／0</span>
+            <span id="suggestedCompletionText">建議攜帶：0／0</span>
+            <span id="optionalCompletionText">個人選配：0／0</span>
+          </div>
+          <p class="field-hint" style="margin-top:8px">完成度僅以必備裝備計算，建議與選配可依行程自行調整。</p>
         </div>
 
-        <div id="resultGroups"></div>
+        <div id="resultGroups" aria-live="polite"></div>
 
         <div class="cta-row" style="margin-top:8px; flex-wrap:wrap">
           <button class="btn btn-primary" type="button" id="addMissingBtn">將缺少裝備加入預約清單</button>
           <button class="btn btn-outline" type="button" id="restartBtn">重新開始</button>
           <a href="gear-list.html" class="btn btn-ghost">瀏覽全部裝備</a>
         </div>
-        <p class="field-hint" id="skipSizeNote" style="display:none; margin-top:10px"></p>
+      </div>
       </div>
     </div>
   </section>
@@ -115,6 +131,7 @@
 <script src="js/orders.js"></script>
 <script src="js/credits.js"></script>
 <script>
+try {
   const CHECKLIST_ICONS = {
     'day-hike': 'mountain',
     'multi-day-hike': 'backpack',
@@ -133,6 +150,8 @@
   const step3El = document.getElementById('step3');
   const stepIndicators = document.querySelectorAll('.wizard-step');
 
+  const STEP_HEADING_IDS = { 1: 'step1Title', 2: 'step2Title', 3: 'resultTitle' };
+
   function goToStep(n) {
     step = n;
     step1El.style.display = n === 1 ? 'block' : 'none';
@@ -142,8 +161,16 @@
       const s = parseInt(el.dataset.step, 10);
       el.classList.toggle('active', s === n);
       el.classList.toggle('done', s < n);
+      if (s === n) {
+        el.setAttribute('aria-current', 'step');
+      } else {
+        el.removeAttribute('aria-current');
+      }
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    const heading = document.getElementById(STEP_HEADING_IDS[n]);
+    if (heading) heading.focus();
   }
 
   function renderActivityChoices() {
@@ -234,12 +261,27 @@
     return [...activeActivity.must, ...activeActivity.suggested, ...activeActivity.optional];
   }
 
+  /* Must/suggested/optional are tracked as three separate tallies — the
+     headline progress bar only ever reflects must-have gear, so finishing
+     the essentials always reads as "done" regardless of how many optional
+     or suggested items are still unchecked. */
+  function tally(ids) {
+    return { owned: ids.filter((id) => ownedIds.has(id)).length, total: ids.length };
+  }
+
   function updateCompletion() {
-    const all = allListedIds();
-    const owned = all.filter((id) => ownedIds.has(id)).length;
-    const pct = all.length ? Math.round((owned / all.length) * 100) : 0;
-    document.getElementById('completionPct').textContent = `${pct}%`;
-    document.getElementById('completionBarFill').style.width = `${pct}%`;
+    const must = tally(activeActivity.must);
+    const suggested = tally(activeActivity.suggested);
+    const optional = tally(activeActivity.optional);
+    const mustPct = must.total ? Math.round((must.owned / must.total) * 100) : 100;
+
+    document.getElementById('completionPct').textContent = `${mustPct}%`;
+    document.getElementById('completionBarFill').style.width = `${mustPct}%`;
+    document.getElementById('completionBar').setAttribute('aria-valuenow', String(mustPct));
+    document.getElementById('completionLabel').textContent = mustPct >= 100 ? '必備裝備已準備完成' : '裝備準備完成度';
+    document.getElementById('mustCompletionText').textContent = `必備裝備完成度：${must.owned}／${must.total}`;
+    document.getElementById('suggestedCompletionText').textContent = `建議攜帶：${suggested.owned}／${suggested.total}`;
+    document.getElementById('optionalCompletionText').textContent = `個人選配：${optional.owned}／${optional.total}`;
   }
 
   function renderStep3() {
@@ -269,44 +311,110 @@
       showToast('裝備都已經有囉，沒有缺少的項目');
       return;
     }
-    let added = 0;
-    let skipped = [];
-    // Reuse the cart's existing rental date range if one already exists, so bulk-adding
-    // here can never create a same-cart date conflict (see getCartRentalDateRange).
-    const existingRange = getCartRentalDateRange();
-    const start = existingRange ? existingRange.startDate : todayStr(3);
-    const end = existingRange ? existingRange.endDate : todayStr(6);
-    const days = daysBetween(start, end) || 3;
+
+    const sizedItems = [];
+    const addableItems = [];
     missing.forEach((id) => {
       const item = getGearById(id);
       if (!item) return;
-      if (getSizeStockForMode(item, 'rent')) {
-        skipped.push(item.name);
-        return;
-      }
-      addToCart({
-        gearId: item.id,
-        name: item.name,
-        icon: item.icon,
-        photo: item.photo || null,
-        activity: item.activity,
-        mode: 'rent',
-        startDate: start,
-        endDate: end,
-        days,
-        unitPrice: item.rentPricePerDay,
-        lineTotal: days * item.rentPricePerDay,
-      });
-      added += 1;
+      if (getSizeStockForMode(item, 'rent')) sizedItems.push(item);
+      else addableItems.push(item);
     });
-    const note = document.getElementById('skipSizeNote');
-    if (skipped.length) {
-      note.style.display = 'block';
-      note.textContent = `${skipped.join('、')} 需要選擇尺寸，請至商品頁選好尺寸再加入預約清單。`;
-    } else {
-      note.style.display = 'none';
+
+    // Default dates: reuse the cart's existing rental range if one already exists (so this
+    // can never create a same-cart date conflict); otherwise a plain +3/+6 default — but
+    // always shown and editable, never decided silently in the background.
+    const existingRange = getCartRentalDateRange();
+    const defaultStart = existingRange ? existingRange.startDate : todayStr(3);
+    const defaultEnd = existingRange ? existingRange.endDate : todayStr(6);
+
+    const overlay = showModal(`
+      <h2 id="addMissingTitle" style="font-size:1.15rem">確認加入預約清單</h2>
+      <div class="review-box" style="margin-top:4px">
+        <div class="review-row"><span>活動</span><span>${activeActivity.name}</span></div>
+        ${answers.people ? `<div class="review-row"><span>人數</span><span>${answers.people} 人</span></div>` : ''}
+      </div>
+      <div class="kit-modal-field-row">
+        <div class="kit-modal-field">
+          <label for="missingStartDate">取貨日</label>
+          <input type="date" class="input" id="missingStartDate" value="${defaultStart}" min="${todayStr()}">
+        </div>
+        <div class="kit-modal-field">
+          <label for="missingEndDate">歸還日</label>
+          <input type="date" class="input" id="missingEndDate" value="${defaultEnd}">
+        </div>
+      </div>
+      <div class="kit-modal-field">
+        <p class="field-hint" style="margin-bottom:6px">將加入預約清單（${addableItems.length} 項）</p>
+        <ul class="rental-contents-list">${addableItems.map((i) => `<li>${svgIcon('checkCircle', 'style="width:14px;height:14px"')} ${i.name}</li>`).join('') || `<li class="field-hint">（無，全部需要先選尺寸）</li>`}</ul>
+      </div>
+      ${sizedItems.length ? `
+        <div class="kit-modal-field">
+          <p class="field-hint" style="margin-bottom:6px; color:var(--color-warning)">需要先選擇尺寸，不會自動加入</p>
+          <ul class="rental-contents-list">
+            ${sizedItems.map((i) => `<li>${svgIcon('alertTriangle', 'style="width:14px;height:14px"')} ${i.name}<a href="product.html?id=${i.id}" class="btn btn-ghost btn-sm" style="margin-left:10px">前往商品頁</a></li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+      <p class="form-error" id="missingModalError" role="alert" style="display:none"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary btn-block" id="confirmAddMissing" ${addableItems.length === 0 ? 'disabled' : ''}>確認加入</button>
+        <button type="button" class="btn btn-ghost btn-block" id="cancelAddMissing">取消</button>
+      </div>
+    `, { labelledBy: 'addMissingTitle' });
+
+    const startInput = overlay.querySelector('#missingStartDate');
+    const endInput = overlay.querySelector('#missingEndDate');
+    const errorEl = overlay.querySelector('#missingModalError');
+    function showMissingError(msg) { errorEl.textContent = msg; errorEl.style.display = 'block'; }
+
+    [startInput, endInput].forEach((el) => el.addEventListener('change', () => {
+      if (endInput.value && startInput.value && endInput.value <= startInput.value) {
+        const d = new Date(`${startInput.value}T00:00:00`);
+        d.setDate(d.getDate() + 1);
+        endInput.value = localDateString(d);
+      }
+      errorEl.style.display = 'none';
+    }));
+
+    const confirmBtn = overlay.querySelector('#confirmAddMissing');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        const start = startInput.value;
+        const end = endInput.value;
+        const days = daysBetween(start, end);
+        if (days <= 0) { showMissingError('請選擇有效的取貨與歸還日期。'); return; }
+        if (!isSameRentalDateRange(start, end)) {
+          showMissingError('所選日期與購物車目前的租借日期不同，請調整日期或先確認購物車。');
+          return;
+        }
+        const shortage = addableItems.find((item) => getAvailableRentalStock({ gearId: item.id, startDate: start, endDate: end }) < 1);
+        if (shortage) {
+          showMissingError(`${shortage.name} 所選日期目前無庫存，請調整日期或至商品頁查看其他選項。`);
+          return;
+        }
+
+        let allOk = true;
+        addableItems.forEach((item) => {
+          const ok = addToCart({
+            gearId: item.id, name: item.name, icon: item.icon, photo: item.photo || null, activity: item.activity,
+            mode: 'rent', selectedSize: null, recommendedSize: null, quantity: 1,
+            startDate: start, endDate: end, days,
+            unitPrice: item.rentPricePerDay, lineTotal: days * item.rentPricePerDay,
+          });
+          if (!ok) allOk = false;
+        });
+        closeModal();
+        if (!allOk) {
+          showToast('資料暫時無法儲存，請確認瀏覽器沒有停用網站儲存功能。');
+          return;
+        }
+        showToast(sizedItems.length > 0
+          ? `已加入 ${addableItems.length} 項裝備，另有 ${sizedItems.length} 項需要先選擇尺寸。`
+          : `已加入 ${addableItems.length} 項裝備。`);
+      });
     }
-    if (added > 0) showToast(`已將 ${added} 項缺少裝備加入預約清單`);
+    overlay.querySelector('#cancelAddMissing').addEventListener('click', () => closeModal());
   });
 
   document.getElementById('restartBtn').addEventListener('click', () => {
@@ -317,6 +425,11 @@
   });
 
   renderActivityChoices();
+} catch (err) {
+  console.error(err);
+  document.getElementById('checklistWizard').style.display = 'none';
+  renderFatalErrorState(document.getElementById('checklistFatalError'), { message: '裝備清單工具目前無法載入，請重新整理頁面。' });
+}
 </script>
 </body>
 </html>

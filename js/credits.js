@@ -76,9 +76,12 @@ function createCreditsFromCompletedOrder(order) {
     const earned = calcRentToBuyCredit(item.lineTotal, gear.buyPrice);
     if (!(earned > 0)) return;
     credits.push({
-      creditId: `CREDIT-${order.orderId}-${item.gearId}`,
+      /* Keyed by lineId, not gearId — an order can rent the same gear on more than
+         one line (e.g. two tents), and those would otherwise collide on one ID. */
+      creditId: `CREDIT-${order.orderId}-${item.lineId}`,
       gearId: item.gearId,
       sourceOrderId: order.orderId,
+      sourceLineId: item.lineId,
       earnedAmount: earned,
       usedAmount: 0,
       remainingAmount: earned,

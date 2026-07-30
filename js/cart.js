@@ -35,6 +35,8 @@ function setCart(cart) {
   return ok;
 }
 
+/* Returns whether the write actually persisted — callers must check this before
+   telling the user their item was added, rather than assuming success. */
 function addToCart(line) {
   const cart = safeGetJSON(CART_KEY, []);
   const list = Array.isArray(cart) ? cart : [];
@@ -42,8 +44,7 @@ function addToCart(line) {
   line.quantity = line.quantity ?? 1;
   line.addedAt = line.addedAt || new Date().toISOString();
   list.push(line);
-  setCart(list);
-  return line;
+  return setCart(list);
 }
 
 function removeFromCart(lineId) {
@@ -58,8 +59,10 @@ function clearRentalLines() {
   setCart(cart);
 }
 
+/* Total item count across all lines (帳篷 × 2 + 睡袋 × 3 = 5), not the number
+   of distinct lines — matches what the cart badge is meant to communicate. */
 function cartCount() {
-  return getCart().length;
+  return getCart().reduce((sum, line) => sum + (line.quantity || 1), 0);
 }
 
 function updateCartBadge() {

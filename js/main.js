@@ -1,7 +1,21 @@
 /* Shared utilities: formatting, TW-local dates, toast, modal, header nav. Loaded after storage.js. */
 
 function formatCurrency(n) {
-  return 'NT$ ' + Math.round(n).toLocaleString('zh-TW');
+  const num = Number(n);
+  return 'NT$ ' + Math.round(Number.isFinite(num) ? num : 0).toLocaleString('zh-TW');
+}
+
+/* Escapes text pulled from form input, localStorage, or order/cart records before it's
+   interpolated into an innerHTML template — those sources are all editable by the
+   browser's own user (devtools, direct localStorage edits), so they're never trusted
+   as-is. Prefer .textContent over this wherever the surrounding markup allows it. */
+function escapeHTML(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
 function daysBetween(startStr, endStr) {
@@ -124,6 +138,29 @@ function closeModal() {
     modalLastFocused.focus();
   }
   modalLastFocused = null;
+}
+
+/* ==========================================================================
+   Fatal render-error fallback — every page-specific script wraps its own
+   top-level render logic in try/catch and calls this in the catch block, so a
+   thrown error never leaves the page stuck on a loading state or blank.
+   ========================================================================== */
+function renderFatalErrorState(container, { message } = {}) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16.3" r="0.6" fill="currentColor" stroke="none"/></svg>
+      <p>${escapeHTML(message || '頁面暫時無法載入，請重新整理頁面。')}</p>
+      <div class="cta-row" style="margin-top:16px; justify-content:center; flex-wrap:wrap">
+        <button type="button" class="btn btn-primary btn-sm" id="fatalErrorReloadBtn">重新整理頁面</button>
+        <a href="index.html" class="btn btn-outline btn-sm">回首頁</a>
+        <a href="checklist.html" class="btn btn-outline btn-sm">前往裝備清單建立工具</a>
+      </div>
+    </div>
+  `;
+  container.style.display = 'block';
+  const reloadBtn = container.querySelector('#fatalErrorReloadBtn');
+  if (reloadBtn) reloadBtn.addEventListener('click', () => location.reload());
 }
 
 /* ==========================================================================

@@ -10,6 +10,12 @@
 </head>
 <body>
 
+<noscript>
+  <div class="empty-state" style="max-width:640px; margin:32px auto">
+    <p>此頁面需要啟用 JavaScript 才能顯示裝備清單，請啟用 JavaScript 後重新整理頁面。</p>
+  </div>
+</noscript>
+
 <header class="site-header">
   <div class="container">
     <a href="index.html" class="brand">
@@ -179,6 +185,7 @@
 <script src="js/kits.js"></script>
 <script src="js/gear-render.js"></script>
 <script>
+try {
   const GEAR_TYPES = ['背包', '帳篷', '睡眠系統', '鞋類與穿戴裝備', '登山杖與配件', '炊具', '水上安全裝備'];
   const NEED_TAGS = ['新手推薦', '輕量化裝備', '多人套裝', '兩天一夜', '三天以上', '雨天裝備', '熱門租借'];
   const DIFFICULTIES = [...new Set(GEAR_ITEMS.map((g) => g.difficulty))];
@@ -384,12 +391,19 @@
       loadingState.style.display = 'none';
     } catch (err) {
       console.error(err);
-      loadingState.querySelector('p').textContent = '裝備資料目前無法載入，請重新整理頁面。';
       grid.style.display = 'none';
+      renderFatalErrorState(loadingState, { message: '裝備資料目前無法載入，請重新整理頁面。' });
     }
   }
 
   boot();
+} catch (err) {
+  console.error(err);
+  const loadingState = document.getElementById('loadingState');
+  const grid = document.getElementById('gearGrid');
+  if (grid) grid.style.display = 'none';
+  renderFatalErrorState(loadingState, { message: '裝備清單頁面目前無法載入，請重新整理頁面。' });
+}
 </script>
 </body>
 </html>

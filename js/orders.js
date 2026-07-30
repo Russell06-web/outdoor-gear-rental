@@ -11,6 +11,8 @@ const ORDER_STATUS_LABELS = {
   completed: '已完成',
   cancelled: '已取消',
   purchased: '購買完成',
+  purchase_processing: '商品準備中',
+  purchase_ready_pickup: '等待取貨',
 };
 
 function getOrders() {
@@ -52,14 +54,20 @@ function generateOrderId() {
   return `${prefix}${String(next).padStart(3, '0')}`;
 }
 
-/* Explicit terminal states (completed/cancelled) always win once set. Everything else is derived
-   live from today's date vs. the order's rental window, per spec — never trusted from storage. */
+/* Explicit terminal states (completed/cancelled) always win once set. Rent-bearing orders
+   (including mixed rent+buy) derive their status live from today's date vs. the rental
+   window, per spec — never trusted from storage. Buy-only orders have no date signal to
+   derive from, so their status is explicit instead: it advances only through the demo
+   "標記商品已備妥" / "完成取貨" actions, defaulting to purchase_processing when unset. */
 function deriveOrderStatus(order, now = new Date()) {
   if (!order || !Array.isArray(order.items)) return 'pending_pickup';
   if (order.status === 'completed' || order.status === 'cancelled') return order.status;
 
   const hasRent = order.items.some((i) => i.mode === 'rent');
-  if (!hasRent) return 'purchased';
+  if (!hasRent) {
+    if (order.status === 'purchase_ready_pickup' || order.status === 'purchased') return order.status;
+    return 'purchase_processing';
+  }
 
   const rentLines = order.items.filter((i) => i.mode === 'rent' && i.startDate && i.endDate);
   if (rentLines.length === 0) return 'pending_pickup';
@@ -80,10 +88,17 @@ function getOrderStatusLabel(order) {
 /* { flow: 'rent'|'buy', current } — current = number of completed stages (index of the active
    stage; equal to flow.length once everything is done, so nothing renders as "current"). */
 function getOrderTimelineStage(order) {
-  const hasRent = order.items.some((i) => i.mode === 'rent');
-  if (!hasRent) return { flow: 'buy', current: BUY_FLOW.length };
-
   const status = deriveOrderStatus(order);
+  const hasRent = order.items.some((i) => i.mode === 'rent');
+  if (!hasRent) {
+    const buyMap = {
+      purchase_processing: 1,
+      purchase_ready_pickup: 2,
+      purchased: BUY_FLOW.length,
+    };
+    return { flow: 'buy', current: buyMap[status] ?? 0 };
+  }
+
   const map = {
     pending_pickup: 2,
     renting: 3,
@@ -91,6 +106,37 @@ function getOrderTimelineStage(order) {
     completed: RENT_FLOW.length,
   };
   return { flow: 'rent', current: map[status] ?? 0 };
+}
+
+/* ==========================================================================
+   Date-based rental availability — the number actually free for a given
+   gear/size across a date range, after subtracting overlapping active
+   orders. Prototype limitation: this only ever looks at orders sitting in
+   this browser's localStorage, never a real shared/server-side ledger.
+   ========================================================================== */
+function getAvailableRentalStock({ gearId, size, startDate, endDate, excludeOrderId } = {}) {
+  const gear = getGearById(gearId);
+  if (!gear) return 0;
+
+  const sizeStock = getSizeStockForMode(gear, 'rent');
+  const baseStock = sizeStock ? (sizeStock[size] ?? 0) : gear.stock;
+  if (!startDate || !endDate) return baseStock;
+
+  let reserved = 0;
+  getOrders().forEach((order) => {
+    if (excludeOrderId && order.orderId === excludeOrderId) return;
+    if (deriveOrderStatus(order) === 'cancelled') return;
+    order.items.forEach((item) => {
+      if (item.mode !== 'rent' || item.gearId !== gearId) return;
+      if (sizeStock && item.selectedSize !== size) return;
+      if (!item.startDate || !item.endDate) return;
+      /* Half-open interval: a return on 8/4 doesn't block a new rental starting 8/4. */
+      const overlaps = startDate < item.endDate && endDate > item.startDate;
+      if (overlaps) reserved += item.quantity || 1;
+    });
+  });
+
+  return Math.max(0, baseStock - reserved);
 }
 
 /* ==========================================================================
@@ -118,11 +164,11 @@ function completeReturnInspection(orderId) {
   return true;
 }
 
-/* Only orders that haven't started yet (pending_pickup, or a buy order still
-   being prepared) can be cancelled from the account page. */
+/* Only orders that haven't started yet — rent orders still awaiting pickup, or
+   buy orders still being prepared/not yet picked up — can be cancelled. */
 function canCancelOrder(order) {
   const status = deriveOrderStatus(order);
-  return status === 'pending_pickup';
+  return status === 'pending_pickup' || status === 'purchase_processing' || status === 'purchase_ready_pickup';
 }
 
 function cancelOrder(orderId) {
@@ -131,6 +177,31 @@ function cancelOrder(orderId) {
   if (idx === -1) return false;
   if (!canCancelOrder(orders[idx])) return false;
   orders[idx].status = 'cancelled';
+  saveOrders(orders);
+  return true;
+}
+
+/* ==========================================================================
+   Demo purchase-fulfillment actions (product portfolio demo only — not a
+   real store-operations permission). Each only advances from the exact
+   status it expects, so double-clicks or stale UI can't skip a stage.
+   ========================================================================== */
+function markPurchaseReady(orderId) {
+  const orders = getOrders();
+  const idx = orders.findIndex((o) => o.orderId === orderId);
+  if (idx === -1) return false;
+  if (deriveOrderStatus(orders[idx]) !== 'purchase_processing') return false;
+  orders[idx].status = 'purchase_ready_pickup';
+  saveOrders(orders);
+  return true;
+}
+
+function completePurchasePickup(orderId) {
+  const orders = getOrders();
+  const idx = orders.findIndex((o) => o.orderId === orderId);
+  if (idx === -1) return false;
+  if (deriveOrderStatus(orders[idx]) !== 'purchase_ready_pickup') return false;
+  orders[idx].status = 'purchased';
   saveOrders(orders);
   return true;
 }
@@ -158,7 +229,7 @@ function migrateLastOrder() {
         .filter((i) => i.mode === 'rent')
         .reduce((s, i) => {
           const gear = getGearById(i.gearId);
-          return s + (gear ? Math.round(gear.buyPrice * 0.3) : 0);
+          return s + (gear ? Math.round(gear.buyPrice * 0.3) * (i.quantity || 1) : 0);
         }, 0);
       orders.push({
         orderId: generateOrderId(),
@@ -195,8 +266,9 @@ function seedDemoOrders() {
     orderId: 'ORD-DEMO-001',
     createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
     status: null,
-    customer: { name: '邱志綸', phone: '0912-345-678', email: 'russell@example.com' },
+    customer: { name: '林小山', phone: '0912-000-000', email: 'demo@gearloop.example' },
     fulfillment: {
+      pickupDate: todayStr(-2),
       pickupLocation: '台北信義門市',
       returnLocation: '台北信義門市',
       pickupTime: { value: '09:00-12:00', label: '上午 09:00–12:00' },
@@ -229,8 +301,9 @@ function seedDemoOrders() {
     orderId: 'ORD-DEMO-002',
     createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
     status: null,
-    customer: { name: '邱志綸', phone: '0912-345-678', email: 'russell@example.com' },
+    customer: { name: '林小山', phone: '0912-000-000', email: 'demo@gearloop.example' },
     fulfillment: {
+      pickupDate: todayStr(-10),
       pickupLocation: '台北信義門市',
       returnLocation: '台北信義門市',
       pickupTime: { value: '09:00-12:00', label: '上午 09:00–12:00' },
@@ -255,8 +328,9 @@ function seedDemoOrders() {
     orderId: 'ORD-DEMO-003',
     createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
     status: null,
-    customer: { name: '邱志綸', phone: '0912-345-678', email: 'russell@example.com' },
+    customer: { name: '林小山', phone: '0912-000-000', email: 'demo@gearloop.example' },
     fulfillment: {
+      pickupDate: todayStr(2),
       pickupLocation: '台北信義門市',
       returnLocation: '台北信義門市',
       pickupTime: { value: '09:00-12:00', label: '上午 09:00–12:00' },
@@ -292,7 +366,7 @@ function seedDemoOrders() {
       .filter((i) => i.mode === 'rent')
       .reduce((s, i) => {
         const gear = getGearById(i.gearId);
-        return s + (gear ? Math.round(gear.buyPrice * 0.3) : 0);
+        return s + (gear ? Math.round(gear.buyPrice * 0.3) * (i.quantity || 1) : 0);
       }, 0);
     order.pricing = { rentSubtotal, purchaseSubtotal, creditApplied: 0, total: rentSubtotal + purchaseSubtotal, depositAuthorization };
   });

@@ -1,5 +1,9 @@
 /* checkout.html page logic. Loaded last, after icons/data/storage/main/cart/orders/credits. */
 
+/* Whole file wrapped in try/catch so a thrown error anywhere during render falls through to a
+   visible recovery UI instead of leaving the page blank or stuck mid-render. */
+try {
+
 /* Must run before renderAll() at the bottom of this file — see the same note in account.js. */
 initializePrototypeData();
 
@@ -12,6 +16,8 @@ const TIME_SLOT_MAP = {
 const customerName = document.getElementById('customerName');
 const customerPhone = document.getElementById('customerPhone');
 const customerEmail = document.getElementById('customerEmail');
+const pickupDateInput = document.getElementById('pickupDateInput');
+const pickupDateHint = document.getElementById('pickupDateHint');
 const pickupLocationSelect = document.getElementById('pickupLocation');
 const returnLocationSelect = document.getElementById('returnLocation');
 const returnFieldsWrap = document.getElementById('returnFieldsWrap');
@@ -39,23 +45,55 @@ function setupRadioGroup(groupId) {
 setupRadioGroup('pickupTimeGroup');
 setupRadioGroup('returnTimeGroup');
 
-[customerName, customerPhone, customerEmail, pickupLocationSelect, returnLocationSelect].forEach((el) => {
+[customerName, customerPhone, customerEmail, pickupDateInput, pickupLocationSelect, returnLocationSelect].forEach((el) => {
   el.addEventListener('input', renderReviewOnly);
   el.addEventListener('change', renderReviewOnly);
 });
 
-function getCheckoutPageTitle(cart) {
+/* Single source of truth for every mode-dependent piece of checkout copy —
+   the label/button text a shopper sees depends entirely on whether their
+   cart is rent-only, buy-only, or mixed. */
+function getCheckoutCopy(cart) {
   const hasRent = cart.some((l) => l.mode === 'rent');
   const hasBuy = cart.some((l) => l.mode === 'buy');
-  if (hasRent && hasBuy) return '確認訂單';
-  if (hasRent) return '確認預約';
-  return '確認購買';
+
+  if (hasRent && hasBuy) {
+    return {
+      eyebrow: '訂單結帳',
+      heading: '確認訂單',
+      fulfillmentHeading: '取貨與歸還',
+      agreementText: '我已確認租借日期、尺寸、取還方式，並同意租借、損壞與取消規則。',
+      submitText: '送出訂單',
+      submittingText: '正在建立訂單…',
+      successTitle: '訂單已成立',
+    };
+  }
+  if (hasRent) {
+    return {
+      eyebrow: '租借結帳',
+      heading: '確認預約',
+      fulfillmentHeading: '取貨與歸還',
+      agreementText: '我已確認租借日期、尺寸、取還方式，並同意租借、損壞與取消規則。',
+      submitText: '送出預約',
+      submittingText: '正在建立預約…',
+      successTitle: '預約已成立',
+    };
+  }
+  return {
+    eyebrow: '購買結帳',
+    heading: '確認購買',
+    fulfillmentHeading: '取貨資訊',
+    agreementText: '我已確認取貨資訊，並同意購買、取消與退款規則。',
+    submitText: '送出訂單',
+    submittingText: '正在建立訂單…',
+    successTitle: '訂單已成立',
+  };
 }
 
 function thumbHTML(line) {
   const gear = getGearById(line.gearId);
   return gear && gear.photo
-    ? `<img src="${gear.photo}" alt="${line.name}">`
+    ? `<img src="${gear.photo}" alt="${escapeHTML(line.name)}">`
     : svgIcon(line.icon);
 }
 
@@ -72,12 +110,13 @@ function lineItemHTML(line) {
       ? `租借 · ${line.startDate} ~ ${line.endDate}（${line.days} 天）`
       : `直接購買`;
   }
+  if (line.quantity > 1) meta += ` · 數量 × ${line.quantity}`;
   return `
     <div class="summary-line-item">
       <div class="sli-thumb gear-thumb${gear && gear.photo ? ' has-photo' : ''}" data-activity="${line.activity}">${thumbHTML(line)}</div>
       <div class="sli-body">
-        <div class="sli-title">${line.name}</div>
-        <div class="sli-meta">${activity ? activity.name + ' · ' : ''}${meta}</div>
+        <div class="sli-title">${escapeHTML(line.name)}</div>
+        <div class="sli-meta">${activity ? escapeHTML(activity.name) + ' · ' : ''}${escapeHTML(meta)}</div>
       </div>
       <div class="sli-price">${formatCurrency(line.lineTotal)}</div>
     </div>
@@ -89,13 +128,14 @@ function checkoutItemRowHTML(line) {
   const baseMeta = line.mode === 'rent'
     ? `租借區間：${line.startDate} ~ ${line.endDate}（${line.days} 天 × ${formatCurrency(line.unitPrice)}）`
     : '模式：直接購買';
-  const meta = line.selectedSize ? `尺寸：EU ${line.selectedSize} ・ ${baseMeta}` : baseMeta;
+  let meta = line.selectedSize ? `尺寸：EU ${line.selectedSize} ・ ${baseMeta}` : baseMeta;
+  if (line.quantity > 1) meta += ` ・ 數量 × ${line.quantity}`;
   return `
     <div class="order-item-row">
       <div class="oi-thumb gear-thumb${gear && gear.photo ? ' has-photo' : ''}" data-activity="${line.activity}">${thumbHTML(line)}</div>
       <div style="flex:1">
-        <div class="oi-title">${line.name}</div>
-        <div class="oi-meta">${meta}</div>
+        <div class="oi-title">${escapeHTML(line.name)}</div>
+        <div class="oi-meta">${escapeHTML(meta)}</div>
       </div>
       <div style="text-align:right">
         <div class="sli-price">${formatCurrency(line.lineTotal)}</div>
@@ -199,7 +239,7 @@ function renderCredits(cart) {
     return `
       <div class="credit-line">
         <div>
-          <div class="credit-line-title">${gear.name}</div>
+          <div class="credit-line-title">${escapeHTML(gear.name)}</div>
           <p class="field-hint">你目前有 ${formatCurrency(getAvailableCreditForGear(line.gearId))} 可用折抵，本次最高可折抵 ${formatCurrency(applicable)}。</p>
         </div>
         <label class="checkbox-row" style="margin-top:6px">
@@ -235,7 +275,7 @@ function calculateCheckoutPricing(cart, creditSelections) {
     .filter((l) => l.mode === 'rent')
     .reduce((s, l) => {
       const gear = getGearById(l.gearId);
-      return s + (gear ? Math.round(gear.buyPrice * 0.3) : 0);
+      return s + (gear ? Math.round(gear.buyPrice * 0.3) * (l.quantity || 1) : 0);
     }, 0);
   const total = Math.max(0, rentSubtotal + purchaseSubtotal - creditApplied);
   return { rentSubtotal, purchaseSubtotal, creditApplied, depositAuthorization, total };
@@ -264,17 +304,20 @@ function renderSummary(cart) {
 function renderReviewOnly() {
   const cart = getCart();
   const hasRent = cart.some((l) => l.mode === 'rent');
-  const name = customerName.value.trim() || '（尚未填寫）';
-  const phone = customerPhone.value.trim() || '（尚未填寫）';
-  const email = customerEmail.value.trim() || '（尚未填寫）';
+  const name = escapeHTML(customerName.value.trim()) || '（尚未填寫）';
+  const phone = escapeHTML(customerPhone.value.trim()) || '（尚未填寫）';
+  const email = escapeHTML(customerEmail.value.trim()) || '（尚未填寫）';
   const pickupLoc = pickupLocationSelect.value || '（尚未選擇）';
   const pickupTimeVal = getCheckedRadioValue('pickupTime');
   const pickupTimeLabel = TIME_SLOT_MAP[pickupTimeVal]?.label || '（尚未選擇）';
+
+  const pickupDateLabel = pickupDateInput.value ? formatDateTW(pickupDateInput.value) : '（尚未選擇）';
 
   let html = `
     <div class="review-row"><span>聯絡人</span><span>${name}</span></div>
     <div class="review-row"><span>手機</span><span>${phone}</span></div>
     <div class="review-row"><span>電子信箱</span><span>${email}</span></div>
+    <div class="review-row"><span>取貨日期</span><span>${pickupDateLabel}</span></div>
     <div class="review-row"><span>取貨</span><span>${pickupLoc}・${pickupTimeLabel}</span></div>
   `;
   if (hasRent) {
@@ -311,10 +354,17 @@ function validateCheckout(cart) {
     errors.push({ field: 'customerEmail', message: '請輸入有效的電子信箱。' });
   }
 
+  const hasRent = cart.some((l) => l.mode === 'rent');
+  if (!hasRent) {
+    if (!pickupDateInput.value) {
+      errors.push({ field: 'pickupDate', message: '請選擇取貨日期。' });
+    } else if (pickupDateInput.value < todayStr()) {
+      errors.push({ field: 'pickupDate', message: '取貨日期不可早於今天。' });
+    }
+  }
+
   if (!pickupLocationSelect.value) errors.push({ field: 'pickupLocation', message: '請選擇取貨地點。' });
   if (!getCheckedRadioValue('pickupTime')) errors.push({ field: 'pickupTime', message: '請選擇取貨時段。' });
-
-  const hasRent = cart.some((l) => l.mode === 'rent');
   if (hasRent) {
     if (!returnLocationSelect.value) errors.push({ field: 'returnLocation', message: '請選擇歸還地點。' });
     if (!getCheckedRadioValue('returnTime')) errors.push({ field: 'returnTime', message: '請選擇歸還時段。' });
@@ -348,6 +398,33 @@ function validateCheckout(cart) {
   return errors;
 }
 
+/* Final defense-in-depth stock check right before submit — the cart may have
+   been sitting open long enough for another order to claim the same dates.
+   Aggregates quantity per gearId+size so duplicate lines for the same
+   item/size are checked together, not one at a time. */
+function findCartStockShortage(cart) {
+  const rentLines = cart.filter((l) => l.mode === 'rent');
+  const neededByKey = new Map();
+  rentLines.forEach((l) => {
+    const key = `${l.gearId}::${l.selectedSize || ''}`;
+    neededByKey.set(key, (neededByKey.get(key) || 0) + (l.quantity || 1));
+  });
+  const checkedKeys = new Set();
+  for (const line of rentLines) {
+    const key = `${line.gearId}::${line.selectedSize || ''}`;
+    if (checkedKeys.has(key)) continue;
+    checkedKeys.add(key);
+    const totalNeeded = neededByKey.get(key);
+    const available = getAvailableRentalStock({
+      gearId: line.gearId, size: line.selectedSize, startDate: line.startDate, endDate: line.endDate,
+    });
+    if (available < totalNeeded) {
+      return { gear: getGearById(line.gearId), available };
+    }
+  }
+  return null;
+}
+
 function showErrors(errors) {
   clearAllFieldErrors();
   const generalMessages = [];
@@ -378,6 +455,7 @@ function focusField(fieldId) {
     customerName: () => customerName,
     customerPhone: () => customerPhone,
     customerEmail: () => customerEmail,
+    pickupDate: () => pickupDateInput,
     pickupLocation: () => pickupLocationSelect,
     pickupTime: () => document.querySelector('#pickupTimeGroup input'),
     returnLocation: () => returnLocationSelect,
@@ -389,6 +467,27 @@ function focusField(fieldId) {
   if (el) {
     el.focus();
     el.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  }
+}
+
+/* Rent (and mixed) carts: pickup date is locked to the rental start date — it's
+   not an independent choice, since the rental window already fixes it. Pure-buy
+   carts: the shopper picks a real pickup date, never before today. */
+function syncPickupDateField(cart) {
+  const hasRent = cart.some((l) => l.mode === 'rent');
+  if (hasRent) {
+    const range = getCartRentalDateRange(cart);
+    pickupDateInput.value = range ? range.startDate : '';
+    pickupDateInput.disabled = true;
+    pickupDateHint.style.display = 'block';
+    pickupDateHint.textContent = '取貨日期依租借開始日自動設定，如需修改請回商品頁調整租借日期。';
+  } else {
+    pickupDateInput.disabled = false;
+    pickupDateInput.min = todayStr();
+    if (!pickupDateInput.value || pickupDateInput.value < todayStr()) {
+      pickupDateInput.value = todayStr(2);
+    }
+    pickupDateHint.style.display = 'none';
   }
 }
 
@@ -408,15 +507,23 @@ function renderAll() {
   withItems.style.display = 'block';
   emptyState.style.display = 'none';
 
-  const title = getCheckoutPageTitle(cart);
-  document.getElementById('pageTitle').textContent = `${title}｜GearLoop`;
-  document.getElementById('pageHeading').textContent = title;
+  syncPickupDateField(cart);
+
+  const copy = getCheckoutCopy(cart);
+  document.getElementById('pageTitle').textContent = `${copy.heading}｜GearLoop`;
+  document.getElementById('pageEyebrow').textContent = copy.eyebrow;
+  document.getElementById('pageHeading').textContent = copy.heading;
+  document.getElementById('fulfillmentHeading').textContent = copy.fulfillmentHeading;
+  document.getElementById('agreementText').textContent = copy.agreementText;
+  if (!isSubmitting) confirmBtn.textContent = copy.submitText;
   document.getElementById('itemsPanelHeading').textContent = cart.some((l) => l.mode === 'rent') && cart.some((l) => l.mode === 'buy')
     ? '商品確認'
     : (cart.every((l) => l.mode === 'buy') ? '購買商品確認' : '租借商品確認');
 
   const hasRent = cart.some((l) => l.mode === 'rent');
   returnFieldsWrap.style.display = hasRent ? 'block' : 'none';
+  document.getElementById('rentPolicyPanel').style.display = hasRent ? 'block' : 'none';
+  document.getElementById('buyPolicyPanel').style.display = hasRent ? 'none' : 'block';
 
   renderCompatWarnings(cart);
   document.getElementById('checkoutItemList').innerHTML = cart.map(checkoutItemRowHTML).join('');
@@ -433,6 +540,84 @@ function renderAll() {
   renderReviewOnly();
 }
 
+/* ==========================================================================
+   Order + credit submission as one atomic prototype "transaction". Never
+   trusts the credit amounts already computed for display — re-validates
+   everything against the current stored state right before touching
+   anything, and rolls all three stores back to their pre-call snapshot if
+   any step fails partway through.
+   ========================================================================== */
+function submitOrderTransaction({ order, creditSelections }) {
+  const ordersSnapshot = getOrders();
+  const creditsSnapshot = getCredits();
+  const cartSnapshot = getCart();
+
+  try {
+    const orderItemsByLineId = new Map(order.items.map((i) => [i.lineId, i]));
+    const selections = Object.entries(creditSelections || {}).filter(([, sel]) => sel && sel.amount > 0);
+
+    /* 1-4: re-validate every selection against the item it claims to belong to,
+       the gear it claims to be for, and the 50%-of-buy-price cap — never just
+       trust the amount the UI had computed earlier. */
+    const requestedByGear = new Map();
+    for (const [lineId, sel] of selections) {
+      const item = orderItemsByLineId.get(lineId);
+      if (!item || item.mode !== 'buy' || item.gearId !== sel.gearId) {
+        throw new Error('CREDIT_LINE_MISMATCH');
+      }
+      const gear = getGearById(sel.gearId);
+      if (!gear) throw new Error('CREDIT_LINE_MISMATCH');
+      const cap = Math.round(gear.buyPrice * RENT_TO_BUY_CAP_RATIO);
+      if (sel.amount > cap) throw new Error('CREDIT_EXCEEDS_CAP');
+      /* Same gearId can appear on more than one line (二條同款商品) — their
+         requested amounts share one pool, so they must be summed before
+         checking against the available balance, not checked one at a time. */
+      requestedByGear.set(sel.gearId, (requestedByGear.get(sel.gearId) || 0) + sel.amount);
+    }
+    for (const [gearId, totalRequested] of requestedByGear.entries()) {
+      if (totalRequested > getAvailableCreditForGear(gearId)) {
+        return { ok: false, reason: 'CREDIT_BALANCE_CHANGED' };
+      }
+    }
+
+    /* 5-6: execute the deduction, then verify the amount actually deducted
+       matches what was requested — applyCreditsToPurchase can legitimately
+       apply less than asked if records changed between the check above and
+       now, so this is a real check, not a formality. */
+    let totalApplied = 0;
+    const appliedByLineId = {};
+    for (const [lineId, sel] of selections) {
+      const applied = applyCreditsToPurchase(sel.gearId, sel.amount);
+      if (applied !== sel.amount) throw new Error('CREDIT_APPLY_MISMATCH');
+      appliedByLineId[lineId] = applied;
+      totalApplied += applied;
+    }
+
+    order.items.forEach((item) => {
+      item.creditRedeemed = appliedByLineId[item.lineId] || 0;
+    });
+    if (totalApplied !== order.pricing.creditApplied) {
+      order.pricing = {
+        ...order.pricing,
+        creditApplied: totalApplied,
+        total: Math.max(0, order.pricing.rentSubtotal + order.pricing.purchaseSubtotal - totalApplied),
+      };
+    }
+
+    /* 7-8: save the order, then clear the cart — only after everything above
+       has succeeded. */
+    if (!addOrder(order)) throw new Error('STORAGE_WRITE_FAILED');
+    if (!setCart([])) throw new Error('STORAGE_WRITE_FAILED');
+
+    return { ok: true, order };
+  } catch (e) {
+    saveOrders(ordersSnapshot);
+    saveCredits(creditsSnapshot);
+    setCart(cartSnapshot);
+    return { ok: false, reason: e.message };
+  }
+}
+
 confirmBtn.addEventListener('click', () => {
   if (isSubmitting) return;
   const cart = getCart();
@@ -443,69 +628,80 @@ confirmBtn.addEventListener('click', () => {
     return;
   }
 
+  const shortage = findCartStockShortage(cart);
+  if (shortage) {
+    showErrors([{
+      field: 'general',
+      message: shortage.available > 0
+        ? `${shortage.gear.name} 所選日期目前只剩 ${shortage.available} 件，請調整數量、日期或選擇其他裝備。`
+        : `${shortage.gear.name} 所選日期目前無庫存，請調整日期或選擇其他裝備。`,
+    }]);
+    return;
+  }
+
+  const copy = getCheckoutCopy(cart);
   clearAllFieldErrors();
   isSubmitting = true;
   confirmBtn.disabled = true;
-  confirmBtn.textContent = '正在建立訂單…';
+  confirmBtn.textContent = copy.submittingText;
 
-  try {
-    const pricing = calculateCheckoutPricing(cart, selectedCreditByLineId);
-    const hasRent = cart.some((l) => l.mode === 'rent');
-    const pickupTimeVal = getCheckedRadioValue('pickupTime');
-    const returnTimeVal = hasRent ? getCheckedRadioValue('returnTime') : null;
-    const pickupLoc = pickupLocationSelect.value;
-    const returnRaw = returnLocationSelect.value;
+  const pricing = calculateCheckoutPricing(cart, selectedCreditByLineId);
+  const hasRent = cart.some((l) => l.mode === 'rent');
+  const pickupTimeVal = getCheckedRadioValue('pickupTime');
+  const returnTimeVal = hasRent ? getCheckedRadioValue('returnTime') : null;
+  const pickupLoc = pickupLocationSelect.value;
+  const returnRaw = returnLocationSelect.value;
 
-    const items = cart.map((line) => ({
-      ...line,
-      assignedEquipmentId: line.mode === 'rent' ? '待門市配貨' : null,
-      rentToBuyCreditEarned: 0,
-      creditGenerated: false,
-      creditRedeemed: selectedCreditByLineId[line.lineId] ? selectedCreditByLineId[line.lineId].amount : 0,
-    }));
+  const items = cart.map((line) => ({
+    ...line,
+    assignedEquipmentId: line.mode === 'rent' ? '待門市配貨' : null,
+    rentToBuyCreditEarned: 0,
+    creditGenerated: false,
+    creditRedeemed: selectedCreditByLineId[line.lineId] ? selectedCreditByLineId[line.lineId].amount : 0,
+  }));
 
-    const order = {
-      orderId: generateOrderId(),
-      createdAt: new Date().toISOString(),
-      status: null,
-      customer: {
-        name: customerName.value.trim(),
-        phone: customerPhone.value.trim(),
-        email: customerEmail.value.trim(),
-      },
-      fulfillment: {
-        pickupLocation: pickupLoc,
-        returnLocation: hasRent ? (returnRaw === 'same' ? pickupLoc : returnRaw) : null,
-        pickupTime: TIME_SLOT_MAP[pickupTimeVal] || null,
-        returnTime: hasRent ? (TIME_SLOT_MAP[returnTimeVal] || null) : null,
-      },
-      items,
-      pricing,
-      agreementAccepted: true,
-    };
+  const order = {
+    orderId: generateOrderId(),
+    createdAt: new Date().toISOString(),
+    status: null,
+    customer: {
+      name: customerName.value.trim(),
+      phone: customerPhone.value.trim(),
+      email: customerEmail.value.trim(),
+    },
+    fulfillment: {
+      pickupDate: hasRent ? (getCartRentalDateRange(cart)?.startDate || null) : pickupDateInput.value,
+      pickupLocation: pickupLoc,
+      returnLocation: hasRent ? (returnRaw === 'same' ? pickupLoc : returnRaw) : null,
+      pickupTime: TIME_SLOT_MAP[pickupTimeVal] || null,
+      returnTime: hasRent ? (TIME_SLOT_MAP[returnTimeVal] || null) : null,
+    },
+    items,
+    pricing,
+    agreementAccepted: true,
+  };
 
-    const saved = addOrder(order);
-    if (!saved) {
-      throw new Error('STORAGE_WRITE_FAILED');
-    }
+  const result = submitOrderTransaction({ order, creditSelections: selectedCreditByLineId });
 
-    Object.values(selectedCreditByLineId).forEach((sel) => {
-      applyCreditsToPurchase(sel.gearId, sel.amount);
-    });
-
-    setCart([]);
-    showSuccessState(order);
-  } catch (e) {
-    console.error(e);
+  if (!result.ok) {
     isSubmitting = false;
     confirmBtn.disabled = false;
-    confirmBtn.textContent = '送出預約';
+    confirmBtn.textContent = copy.submitText;
     const el = document.getElementById('err-general');
-    el.textContent = e.message === 'STORAGE_WRITE_FAILED'
-      ? '資料暫時無法儲存，請確認瀏覽器沒有停用網站儲存功能。'
-      : '目前無法建立訂單，請確認資料後再試一次。';
+    if (result.reason === 'CREDIT_BALANCE_CHANGED') {
+      el.textContent = '可用折抵金額已更新，請重新確認訂單金額。';
+      Object.keys(selectedCreditByLineId).forEach((k) => delete selectedCreditByLineId[k]);
+      renderAll();
+    } else if (result.reason === 'STORAGE_WRITE_FAILED') {
+      el.textContent = '資料暫時無法儲存，請確認瀏覽器沒有停用網站儲存功能。';
+    } else {
+      el.textContent = '目前無法建立訂單，請確認資料後再試一次。';
+    }
     el.style.display = 'block';
+    return;
   }
+
+  showSuccessState(result.order);
 });
 
 function showSuccessState(order) {
@@ -515,18 +711,20 @@ function showSuccessState(order) {
   const hasRent = order.items.some((i) => i.mode === 'rent');
   const range = getOrderRentDateRange(order);
   const creditApplied = order.pricing.creditApplied;
+  const copy = getCheckoutCopy(order.items);
 
   box.innerHTML = `
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>
-    <h2 style="font-size:1.3rem; margin-top:14px; color:var(--color-text)">訂單已成立</h2>
+    <h2 style="font-size:1.3rem; margin-top:14px; color:var(--color-text)">${copy.successTitle}</h2>
     <div class="success-summary">
-      <div class="review-row"><span>訂單編號</span><span>${order.orderId}</span></div>
-      <div class="review-row"><span>聯絡人</span><span>${order.customer.name}</span></div>
-      <div class="review-row"><span>取貨地點</span><span>${order.fulfillment.pickupLocation}</span></div>
-      <div class="review-row"><span>取貨時間</span><span>${hasRent && range ? `${formatDateTW(range.startDate)}・` : ''}${order.fulfillment.pickupTime?.label || ''}${!hasRent ? '（依訂單成立後門市通知安排）' : ''}</span></div>
+      <div class="review-row"><span>訂單編號</span><span>${escapeHTML(order.orderId)}</span></div>
+      <div class="review-row"><span>聯絡人</span><span>${escapeHTML(order.customer.name)}</span></div>
+      <div class="review-row"><span>取貨地點</span><span>${escapeHTML(order.fulfillment.pickupLocation)}</span></div>
+      <div class="review-row"><span>取貨日期</span><span>${formatDateTW(order.fulfillment.pickupDate)}</span></div>
+      <div class="review-row"><span>取貨時間</span><span>${escapeHTML(order.fulfillment.pickupTime?.label || '')}</span></div>
       ${hasRent ? `
-        <div class="review-row"><span>歸還地點</span><span>${order.fulfillment.returnLocation}</span></div>
-        <div class="review-row"><span>歸還時間</span><span>${range ? `${formatDateTW(range.endDate)}・` : ''}${order.fulfillment.returnTime?.label || ''}</span></div>
+        <div class="review-row"><span>歸還地點</span><span>${escapeHTML(order.fulfillment.returnLocation)}</span></div>
+        <div class="review-row"><span>歸還時間</span><span>${range ? `${formatDateTW(range.endDate)}・` : ''}${escapeHTML(order.fulfillment.returnTime?.label || '')}</span></div>
       ` : ''}
       ${creditApplied > 0 ? `<div class="review-row"><span>已套用先租後買折抵</span><span>−${formatCurrency(creditApplied)}</span></div>` : ''}
       <div class="review-row grand"><span>訂單金額</span><span>${formatCurrency(order.pricing.total)}</span></div>
@@ -540,3 +738,12 @@ function showSuccessState(order) {
 }
 
 renderAll();
+
+} catch (err) {
+  console.error(err);
+  ['checkoutWithItems', 'checkoutEmptyState', 'checkoutSuccessState'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  renderFatalErrorState(document.getElementById('checkoutFatalError'), { message: '結帳頁面目前無法載入，請重新整理頁面。' });
+}

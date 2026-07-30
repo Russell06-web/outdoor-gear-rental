@@ -1,5 +1,9 @@
 /* product.html page logic. Loaded last, after icons/data/storage/main/cart/orders/credits. */
 
+/* Whole file wrapped in try/catch so a thrown error anywhere during render falls through to a
+   visible recovery UI instead of leaving the page blank or stuck mid-render. */
+try {
+
 /* Must run before this script's own rendering — see the same note in account.js. */
 initializePrototypeData();
 
@@ -124,24 +128,48 @@ function currentSizeStock() {
   return getSizeStockForMode(item, mode);
 }
 
+/* Rent-mode availability is date-based (see getAvailableRentalStock in orders.js);
+   buy-mode stays a flat pool since purchase inventory isn't tracked by date. */
+function currentAvailableStock() {
+  const sizeStock = currentSizeStock();
+  if (mode === 'rent') {
+    return getAvailableRentalStock({
+      gearId: item.id,
+      size: selectedSize,
+      startDate: startInput.value,
+      endDate: endInput.value,
+    });
+  }
+  return sizeStock ? (sizeStock[selectedSize] ?? 0) : item.stock;
+}
+
 function renderStock() {
   const row = document.getElementById('stockStatusRow');
   const sizeStock = currentSizeStock();
-  if (sizeStock) {
-    if (!selectedSize) {
-      row.innerHTML = `<span class="stock-badge in-stock">依尺寸而定</span><span style="color:var(--color-muted); font-size:0.82rem">請先選擇尺寸查看該尺寸庫存。</span>`;
-      return;
-    }
-    const n = sizeStock[selectedSize] ?? 0;
-    const st = stockStatus(n, item.unit);
-    row.innerHTML = `<span class="stock-badge ${st.key}">${st.label}</span><span style="color:var(--color-muted); font-size:0.82rem">EU ${selectedSize}｜尚有 ${n} ${item.unit}可供${mode === 'rent' ? '租借' : '購買'}。</span>`;
+  if (sizeStock && !selectedSize) {
+    row.innerHTML = `<span class="stock-badge in-stock">依尺寸而定</span><span style="color:var(--color-muted); font-size:0.82rem">請先選擇尺寸查看該尺寸庫存。</span>`;
     return;
   }
-  const status = stockStatus(item.stock, item.unit);
-  const extra = status.key === 'out-stock'
-    ? '目前熱門檔期已滿，可先選擇附近日期或改租其他裝備。'
-    : `尚有 ${item.stock} ${item.unit}可供租借／購買。`;
-  row.innerHTML = `<span class="stock-badge ${status.key}">${status.label}</span><span style="color:var(--color-muted); font-size:0.82rem">${extra}</span>`;
+
+  const sizeLabel = selectedSize ? `EU ${selectedSize}｜` : '';
+  if (mode === 'rent') {
+    if (daysBetween(startInput.value, endInput.value) <= 0) {
+      row.innerHTML = `<span class="stock-badge in-stock">依日期而定</span><span style="color:var(--color-muted); font-size:0.82rem">請先選擇租借日期查看可租數量。</span>`;
+      return;
+    }
+    const n = currentAvailableStock();
+    const st = stockStatus(n, item.unit);
+    const extra = n <= 0
+      ? '所選日期目前額滿，可調整日期或選擇其他裝備。'
+      : `${sizeLabel}所選日期尚有 ${n} ${item.unit}可供租借。`;
+    row.innerHTML = `<span class="stock-badge ${st.key}">${st.label}</span><span style="color:var(--color-muted); font-size:0.82rem">${extra}</span>`;
+    return;
+  }
+
+  const n = currentAvailableStock();
+  const st = stockStatus(n, item.unit);
+  const extra = n <= 0 ? '目前無庫存可供購買。' : `${sizeLabel}尚有 ${n} ${item.unit}可供購買。`;
+  row.innerHTML = `<span class="stock-badge ${st.key}">${st.label}</span><span style="color:var(--color-muted); font-size:0.82rem">${extra}</span>`;
 }
 
 const modeButtons = document.querySelectorAll('.mode-btn');
@@ -191,6 +219,7 @@ function updatePrice() {
   const days = daysBetween(startInput.value, endInput.value);
   document.getElementById('rentDaysLabel').textContent = days > 0 ? `${days} 天` : '請選擇日期區間';
   document.getElementById('rentTotal').textContent = formatCurrency(days * item.rentPricePerDay);
+  if (mode === 'rent') renderStock();
   updateAddButton();
 }
 
@@ -484,11 +513,6 @@ function showAddBookingError(message) {
 function updateAddButton() {
   const btn = document.getElementById('addBookingBtn');
   const verb = mode === 'rent' ? '加入預約清單' : '加入購物車';
-  if (item.stock <= 0) {
-    btn.textContent = '目前無法預約（額滿）';
-    btn.disabled = true;
-    return;
-  }
   const sizeStock = currentSizeStock();
   if (sizeStock && !selectedSize) {
     btn.disabled = true;
@@ -496,14 +520,33 @@ function updateAddButton() {
     return;
   }
   const sizeSuffix = sizeStock ? ` · EU ${selectedSize}` : '';
+
   if (mode === 'rent') {
     const days = daysBetween(startInput.value, endInput.value);
-    btn.disabled = days <= 0;
-    btn.textContent = days > 0 ? `${verb}${sizeSuffix} · ${formatCurrency(days * item.rentPricePerDay)}` : '請先選擇有效租借日期';
-  } else {
+    if (days <= 0) {
+      btn.disabled = true;
+      btn.textContent = '請先選擇有效租借日期';
+      return;
+    }
+    const available = currentAvailableStock();
+    if (available <= 0) {
+      btn.disabled = true;
+      btn.textContent = '所選日期無法預約（額滿）';
+      return;
+    }
     btn.disabled = false;
-    btn.textContent = `${verb}${sizeSuffix} · ${formatCurrency(item.buyPrice)}`;
+    btn.textContent = `${verb}${sizeSuffix} · ${formatCurrency(days * item.rentPricePerDay)}`;
+    return;
   }
+
+  const available = currentAvailableStock();
+  if (available <= 0) {
+    btn.disabled = true;
+    btn.textContent = '目前無法購買（缺貨）';
+    return;
+  }
+  btn.disabled = false;
+  btn.textContent = `${verb}${sizeSuffix} · ${formatCurrency(item.buyPrice)}`;
 }
 
 function buildCartLine() {
@@ -541,8 +584,10 @@ function buildCartLine() {
 }
 
 function performAdd() {
-  addToCart(buildCartLine());
-  showToast(mode === 'rent' ? '已加入預約清單' : '已加入購物車');
+  const ok = addToCart(buildCartLine());
+  showToast(ok
+    ? (mode === 'rent' ? '已加入預約清單' : '已加入購物車')
+    : '資料暫時無法儲存，請確認瀏覽器沒有停用網站儲存功能。');
 }
 
 function openDateConflictDialog(newStart, newEnd) {
@@ -584,7 +629,6 @@ function openDateConflictDialog(newStart, newEnd) {
 
 document.getElementById('addBookingBtn').addEventListener('click', () => {
   clearAddBookingError();
-  if (item.stock <= 0) return;
 
   const sizeStock = currentSizeStock();
   if (sizeStock && !selectedSize) {
@@ -598,8 +642,19 @@ document.getElementById('addBookingBtn').addEventListener('click', () => {
       showAddBookingError('請先選擇有效租借日期。');
       return;
     }
+    const available = currentAvailableStock();
+    if (available <= 0) {
+      showAddBookingError('所選日期目前無庫存，請調整日期或選擇其他裝備。');
+      return;
+    }
     if (!isSameRentalDateRange(startInput.value, endInput.value)) {
       openDateConflictDialog(startInput.value, endInput.value);
+      return;
+    }
+  } else {
+    const available = currentAvailableStock();
+    if (available <= 0) {
+      showAddBookingError('目前無庫存可供購買，請選擇其他裝備。');
       return;
     }
   }
@@ -622,3 +677,9 @@ renderFittingSection();
 renderProductFaq();
 renderRelatedGear();
 renderCompareBar();
+
+} catch (err) {
+  console.error(err);
+  document.getElementById('productLayout').style.display = 'none';
+  renderFatalErrorState(document.getElementById('productFatalError'), { message: '商品資料目前無法載入，請重新整理頁面。' });
+}

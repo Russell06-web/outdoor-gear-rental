@@ -9,6 +9,12 @@
 </head>
 <body>
 
+<noscript>
+  <div class="empty-state" style="max-width:640px; margin:32px auto">
+    <p>此頁面需要啟用 JavaScript 才能顯示商品資料與租借／購買功能，請啟用 JavaScript 後重新整理頁面。</p>
+  </div>
+</noscript>
+
 <header class="site-header">
   <div class="container">
     <a href="index.html" class="brand">
@@ -38,7 +44,8 @@
 <main>
   <section class="section-tight">
     <div class="container">
-      <div class="product-layout">
+      <div id="productFatalError" style="display:none"></div>
+      <div class="product-layout" id="productLayout">
         <div class="product-gallery">
           <div class="product-gallery-main" id="productGalleryMain"></div>
         </div>

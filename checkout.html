@@ -9,6 +9,12 @@
 </head>
 <body>
 
+<noscript>
+  <div class="empty-state" style="max-width:640px; margin:32px auto">
+    <p>此頁面需要啟用 JavaScript 才能完成結帳，請啟用 JavaScript 後重新整理頁面。</p>
+  </div>
+</noscript>
+
 <header class="site-header">
   <div class="container">
     <a href="index.html" class="brand">
@@ -39,7 +45,7 @@
   <section class="section-tight">
     <div class="container">
       <div class="section-head" style="margin-bottom:24px">
-        <span class="eyebrow">預約結帳</span>
+        <span class="eyebrow" id="pageEyebrow">預約結帳</span>
         <h2 id="pageHeading">確認訂單</h2>
       </div>
 
@@ -68,7 +74,13 @@
             </div>
 
             <div class="panel">
-              <h2>取貨與歸還</h2>
+              <h2 id="fulfillmentHeading">取貨與歸還</h2>
+              <div class="form-row">
+                <label for="pickupDateInput">取貨日期 <span class="required-mark">必填</span></label>
+                <input type="date" class="input" id="pickupDateInput">
+                <p class="field-hint" id="pickupDateHint" style="display:none"></p>
+                <p class="form-error" id="err-pickupDate" role="alert"></p>
+              </div>
               <div class="form-row">
                 <label for="pickupLocation">取貨地點 <span class="required-mark">必填</span></label>
                 <select class="input" id="pickupLocation">
@@ -134,7 +146,7 @@
               </div>
             </div>
 
-            <div class="panel">
+            <div class="panel" id="rentPolicyPanel">
               <h2>天氣與取消政策</h2>
               <div class="policy-banner">
                 <div class="pb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4.5 4.5 0 0 1 17 18H7z"/></svg></div>
@@ -144,6 +156,22 @@
                     <li>取貨日當天若中央氣象署對活動所在地發布颱風／豪雨警特報，可免費全額退款或改期，不限次數</li>
                     <li>非天氣因素之取消，於取貨前 48 小時可全額退款；24–48 小時內取消退還 50%；24 小時內恕不退款</li>
                     <li>水域活動如遇當地封灘、封海公告，視同不可抗力，全額退款</li>
+                  </ul>
+                  <a href="policies.html" class="btn btn-outline btn-sm" style="margin-top:12px">查看完整租借規範</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" id="buyPolicyPanel" style="display:none">
+              <h2>取貨、取消與退款說明</h2>
+              <div class="policy-banner">
+                <div class="pb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4.5 4.5 0 0 1 17 18H7z"/></svg></div>
+                <div>
+                  <h3>購買前，這些規則你會想知道</h3>
+                  <ul>
+                    <li>取貨前 48 小時可全額退款；24–48 小時內取消退還 50%；24 小時內恕不退款</li>
+                    <li>取貨時可當場檢查商品，若有瑕疵可現場更換或申請退貨</li>
+                    <li>完成取貨後如需退換貨，請於 7 天內聯繫門市</li>
                   </ul>
                   <a href="policies.html" class="btn btn-outline btn-sm" style="margin-top:12px">查看完整租借規範</a>
                 </div>
@@ -185,7 +213,7 @@
 
               <label class="checkbox-row">
                 <input type="checkbox" id="agreeCheckbox">
-                <span>我已確認租借日期、尺寸、取還方式，並同意租借、損壞與取消規則。</span>
+                <span id="agreementText">我已確認租借日期、尺寸、取還方式，並同意租借、損壞與取消規則。</span>
               </label>
               <p class="form-error" id="err-agree" role="alert"></p>
               <button class="btn btn-primary btn-block" style="margin-top:14px" id="confirmBtn">送出預約</button>
@@ -202,6 +230,7 @@
       </div>
 
       <div class="empty-state" id="checkoutSuccessState" style="display:none"></div>
+      <div id="checkoutFatalError" style="display:none"></div>
     </div>
   </section>
 </main>

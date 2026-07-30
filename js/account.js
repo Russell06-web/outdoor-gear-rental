@@ -1,5 +1,9 @@
 /* account.html page logic. Loaded last, after icons/data/storage/main/cart/orders/credits. */
 
+/* Whole file wrapped in try/catch so a thrown error anywhere during render falls through to a
+   visible recovery UI instead of leaving the page blank or stuck mid-render. */
+try {
+
 /* Must run before this script's own render calls below — DOMContentLoaded (where main.js
    normally triggers seeding) fires only after every script tag has already executed, which
    is too late for account.js's own synchronous renderOrders()/renderCreditsSummary() calls. */
@@ -22,10 +26,12 @@ function orderStatusClass(status) {
     completed: 'done',
     cancelled: 'pending',
     purchased: 'done',
+    purchase_processing: 'pending',
+    purchase_ready_pickup: 'pending',
   }[status] || 'pending';
 }
 
-const NEEDS_ATTENTION_STATUSES = ['pending_pickup', 'renting', 'pending_return_check'];
+const NEEDS_ATTENTION_STATUSES = ['pending_pickup', 'renting', 'pending_return_check', 'purchase_processing', 'purchase_ready_pickup'];
 
 function orderItemRowHTML(item) {
   const metaParts = [];
@@ -37,8 +43,9 @@ function orderItemRowHTML(item) {
     metaParts.push('直接購買');
     if (item.selectedSize) metaParts.push(`尺寸 ${item.selectedSize}`);
   }
+  if (item.quantity > 1) metaParts.push(`數量 × ${item.quantity}`);
   const equipmentLine = item.mode === 'rent' && item.assignedEquipmentId
-    ? `<div class="oi-meta">裝備編號：${item.assignedEquipmentId}</div>` : '';
+    ? `<div class="oi-meta">裝備編號：${escapeHTML(item.assignedEquipmentId)}</div>` : '';
   const creditLine = item.rentToBuyCreditEarned > 0
     ? `<div class="oi-meta" style="color:var(--color-forest-dark)">已產生折抵：${formatCurrency(item.rentToBuyCreditEarned)}</div>` : '';
   const redeemedLine = item.creditRedeemed > 0
@@ -46,10 +53,10 @@ function orderItemRowHTML(item) {
 
   return `
     <div class="order-item-row">
-      <div class="oi-thumb gear-thumb${item.photo ? ' has-photo' : ''}" data-activity="${item.activity || ''}">${item.photo ? `<img src="${item.photo}" alt="${item.name}">` : svgIcon(item.icon || 'package')}</div>
+      <div class="oi-thumb gear-thumb${item.photo ? ' has-photo' : ''}" data-activity="${item.activity || ''}">${item.photo ? `<img src="${item.photo}" alt="${escapeHTML(item.name)}">` : svgIcon(item.icon || 'package')}</div>
       <div style="flex:1">
-        <div class="oi-title">${item.name || '未知商品'}</div>
-        <div class="oi-meta">${metaParts.join(' · ')}</div>
+        <div class="oi-title">${escapeHTML(item.name) || '未知商品'}</div>
+        <div class="oi-meta">${escapeHTML(metaParts.join(' · '))}</div>
         ${equipmentLine}
         ${creditLine}
         ${redeemedLine}
@@ -78,11 +85,12 @@ function orderCardHTML(order) {
   const fulfillment = order.fulfillment || {};
   const pricing = order.pricing || {};
 
+  const pickupDateLabel = fulfillment.pickupDate ? formatDateTW(fulfillment.pickupDate) + ' ・ ' : '';
   const pickupLine = fulfillment.pickupLocation
-    ? `${fulfillment.pickupLocation}${fulfillment.pickupTime ? ' ・ ' + fulfillment.pickupTime.label : ''}`
+    ? escapeHTML(`${pickupDateLabel}${fulfillment.pickupLocation}${fulfillment.pickupTime ? ' ・ ' + fulfillment.pickupTime.label : ''}`)
     : null;
   const returnLine = fulfillment.returnLocation
-    ? `${fulfillment.returnLocation}${fulfillment.returnTime ? ' ・ ' + fulfillment.returnTime.label : ''}`
+    ? escapeHTML(`${fulfillment.returnLocation}${fulfillment.returnTime ? ' ・ ' + fulfillment.returnTime.label : ''}`)
     : null;
 
   const pricingRows = [
@@ -94,6 +102,8 @@ function orderCardHTML(order) {
   ].join('');
 
   const showInspectBtn = status === 'pending_return_check';
+  const showMarkReadyBtn = status === 'purchase_processing';
+  const showCompletePickupBtn = status === 'purchase_ready_pickup';
   const hasRent = order.items.some((i) => i.mode === 'rent');
 
   const actionButtons = [
@@ -108,7 +118,7 @@ function orderCardHTML(order) {
     <div class="order-card" id="order-${order.orderId}" data-order-id="${order.orderId}">
       <div class="order-card-head">
         <div>
-          <div class="oc-id">訂單編號 ${order.orderId}${order.isDemo ? '<span class="demo-tag">示範訂單</span>' : ''}</div>
+          <div class="oc-id">訂單編號 ${escapeHTML(order.orderId)}${order.isDemo ? '<span class="demo-tag">示範訂單</span>' : ''}</div>
           <div class="oc-date">建立時間：${formatDateTimeTW(order.createdAt)}</div>
           ${pickupLine ? `<div class="oc-date">取貨：${pickupLine}</div>` : ''}
           ${returnLine ? `<div class="oc-date">歸還：${returnLine}</div>` : ''}
@@ -125,6 +135,8 @@ function orderCardHTML(order) {
       <div class="order-actions-row">${actionButtons}</div>
 
       ${showInspectBtn ? `<button type="button" class="btn btn-forest btn-sm" data-inspect="${order.orderId}" style="margin-top:10px">完成裝備檢查</button>` : ''}
+      ${showMarkReadyBtn ? `<button type="button" class="btn btn-forest btn-sm" data-mark-ready="${order.orderId}" style="margin-top:10px">標記商品已備妥</button>` : ''}
+      ${showCompletePickupBtn ? `<button type="button" class="btn btn-forest btn-sm" data-complete-pickup="${order.orderId}" style="margin-top:10px">完成取貨</button>` : ''}
     </div>
   `;
 }
@@ -188,8 +200,8 @@ function renderCreditsSummary() {
     return `
       <div class="credit-summary-row">
         <div>
-          <div class="credit-line-title">${gear ? gear.name : gearId}${isDemo ? '<span class="demo-tag">示範資料</span>' : ''}</div>
-          <div class="field-hint">來源訂單 ${sourceIds} · 建立日期 ${createdDates}</div>
+          <div class="credit-line-title">${escapeHTML(gear ? gear.name : gearId)}${isDemo ? '<span class="demo-tag">示範資料</span>' : ''}</div>
+          <div class="field-hint">來源訂單 ${escapeHTML(sourceIds)} · 建立日期 ${escapeHTML(createdDates)}</div>
           ${used > 0 ? `<div class="field-hint">已使用 ${formatCurrency(used)}</div>` : ''}
         </div>
         <div class="${remaining > 0 ? 'rvb-num' : 'field-hint'}">${remaining > 0 ? formatCurrency(remaining) : '已使用完畢'}</div>
@@ -225,14 +237,15 @@ function openOrderDetailModal(order) {
   const overlay = showModal(`
     <h2 id="orderDetailTitle" style="font-size:1.15rem">訂單詳情</h2>
     <div class="review-box" style="margin-top:14px">
-      <div class="review-row"><span>訂單編號</span><span>${order.orderId}</span></div>
-      <div class="review-row"><span>聯絡人</span><span>${c.name || '—'}</span></div>
-      <div class="review-row"><span>手機</span><span>${c.phone || '—'}</span></div>
-      <div class="review-row"><span>電子信箱</span><span>${c.email || '—'}</span></div>
-      <div class="review-row"><span>取貨地點</span><span>${f.pickupLocation || '—'}</span></div>
-      <div class="review-row"><span>取貨時段</span><span>${f.pickupTime?.label || '—'}</span></div>
-      ${f.returnLocation ? `<div class="review-row"><span>歸還地點</span><span>${f.returnLocation}</span></div>` : ''}
-      ${f.returnTime ? `<div class="review-row"><span>歸還時段</span><span>${f.returnTime.label}</span></div>` : ''}
+      <div class="review-row"><span>訂單編號</span><span>${escapeHTML(order.orderId)}</span></div>
+      <div class="review-row"><span>聯絡人</span><span>${escapeHTML(c.name) || '—'}</span></div>
+      <div class="review-row"><span>手機</span><span>${escapeHTML(c.phone) || '—'}</span></div>
+      <div class="review-row"><span>電子信箱</span><span>${escapeHTML(c.email) || '—'}</span></div>
+      <div class="review-row"><span>取貨日期</span><span>${f.pickupDate ? formatDateTW(f.pickupDate) : '—'}</span></div>
+      <div class="review-row"><span>取貨地點</span><span>${escapeHTML(f.pickupLocation) || '—'}</span></div>
+      <div class="review-row"><span>取貨時段</span><span>${escapeHTML(f.pickupTime?.label) || '—'}</span></div>
+      ${f.returnLocation ? `<div class="review-row"><span>歸還地點</span><span>${escapeHTML(f.returnLocation)}</span></div>` : ''}
+      ${f.returnTime ? `<div class="review-row"><span>歸還時段</span><span>${escapeHTML(f.returnTime.label)}</span></div>` : ''}
     </div>
     <div class="modal-actions">
       <button type="button" class="btn btn-ghost btn-block" id="orderDetailClose">關閉</button>
@@ -250,35 +263,43 @@ function reorderRentItems(order) {
   const end = existingRange ? existingRange.endDate : todayStr(6);
   const days = daysBetween(start, end) || 3;
 
+  let allOk = true;
   rentItems.forEach((item) => {
     const gear = getGearById(item.gearId);
     if (!gear) return;
-    addToCart({
+    const ok = addToCart({
       gearId: gear.id, name: gear.name, icon: gear.icon, photo: gear.photo || null, activity: gear.activity,
       mode: 'rent', selectedSize: item.selectedSize || null, recommendedSize: null,
       quantity: item.quantity || 1, startDate: start, endDate: end, days,
       unitPrice: gear.rentPricePerDay, lineTotal: gear.rentPricePerDay * days * (item.quantity || 1),
     });
+    if (!ok) allOk = false;
   });
   updateCartBadge();
+  if (!allOk) {
+    showToast('資料暫時無法儲存，請確認瀏覽器沒有停用網站儲存功能。');
+    return;
+  }
   showToast(existingRange
     ? '已加入預約清單，並沿用購物車目前的租借日期。'
     : '已加入預約清單，請至結帳頁確認日期。');
 }
 
 function buyAgainFromOrder(order) {
+  let allOk = true;
   order.items.forEach((item) => {
     const gear = getGearById(item.gearId);
     if (!gear) return;
-    addToCart({
+    const ok = addToCart({
       gearId: gear.id, name: gear.name, icon: gear.icon, photo: gear.photo || null, activity: gear.activity,
       mode: 'buy', selectedSize: null, recommendedSize: null, quantity: 1,
       startDate: null, endDate: null, days: 0,
       unitPrice: gear.buyPrice, lineTotal: gear.buyPrice,
     });
+    if (!ok) allOk = false;
   });
   updateCartBadge();
-  showToast('已將同款商品加入購物車（購買）。');
+  showToast(allOk ? '已將同款商品加入購物車（購買）。' : '資料暫時無法儲存，請確認瀏覽器沒有停用網站儲存功能。');
 }
 
 document.addEventListener('click', (e) => {
@@ -301,6 +322,48 @@ document.addEventListener('click', (e) => {
       showToast('裝備檢查已完成，租金折抵已加入帳戶。');
     });
     overlay.querySelector('#cancelInspect').addEventListener('click', () => closeModal());
+    return;
+  }
+
+  const markReadyBtn = e.target.closest('[data-mark-ready]');
+  if (markReadyBtn) {
+    const orderId = markReadyBtn.dataset.markReady;
+    const overlay = showModal(`
+      <h2 id="markReadyTitle" style="font-size:1.1rem">確認商品已備妥？</h2>
+      <p style="margin-top:10px; font-size:0.88rem; color:var(--color-muted)">標記後訂單會進入「等待取貨」狀態。此為作品集示範流程，不是實際門市操作權限。</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary btn-block" id="confirmMarkReady">確認已備妥</button>
+        <button type="button" class="btn btn-ghost btn-block" id="cancelMarkReady">取消</button>
+      </div>
+    `, { labelledBy: 'markReadyTitle' });
+    overlay.querySelector('#confirmMarkReady').addEventListener('click', () => {
+      markPurchaseReady(orderId);
+      closeModal();
+      renderOrders();
+      showToast('已標記商品備妥，訂單進入等待取貨狀態。');
+    });
+    overlay.querySelector('#cancelMarkReady').addEventListener('click', () => closeModal());
+    return;
+  }
+
+  const completePickupBtn = e.target.closest('[data-complete-pickup]');
+  if (completePickupBtn) {
+    const orderId = completePickupBtn.dataset.completePickup;
+    const overlay = showModal(`
+      <h2 id="completePickupTitle" style="font-size:1.1rem">確認顧客已完成取貨？</h2>
+      <p style="margin-top:10px; font-size:0.88rem; color:var(--color-muted)">標記後訂單會轉為購買完成。此為作品集示範流程，不是實際門市操作權限。</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary btn-block" id="confirmCompletePickup">確認完成取貨</button>
+        <button type="button" class="btn btn-ghost btn-block" id="cancelCompletePickup">取消</button>
+      </div>
+    `, { labelledBy: 'completePickupTitle' });
+    overlay.querySelector('#confirmCompletePickup').addEventListener('click', () => {
+      completePurchasePickup(orderId);
+      closeModal();
+      renderOrders();
+      showToast('已完成取貨，訂單標記為購買完成。');
+    });
+    overlay.querySelector('#cancelCompletePickup').addEventListener('click', () => closeModal());
     return;
   }
 
@@ -497,3 +560,10 @@ updateDemoToggleLabel();
 renderOrders();
 renderCreditsSummary();
 highlightOrderFromURL();
+
+} catch (err) {
+  console.error(err);
+  const layout = document.getElementById('accountLayout');
+  if (layout) layout.style.display = 'none';
+  renderFatalErrorState(document.getElementById('accountFatalError'), { message: '訂單資料目前無法載入，請重新整理頁面。' });
+}

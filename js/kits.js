@@ -21,13 +21,32 @@ function buildKitCartLine(gear, quantity, startDate, endDate) {
   };
 }
 
+/* Checks every kit line's date-based rental availability before adding.
+   Returns the first shortfall found ({ gear, available }), or null if the
+   whole kit fits. Kit items never have a per-size stock pool, so size is
+   always omitted (getAvailableRentalStock falls back to the flat gear.stock). */
+function findKitStockShortage(kit, people, startDate, endDate) {
+  const pricing = calcKitPricing(kit, people);
+  for (const line of pricing.lines) {
+    const available = getAvailableRentalStock({ gearId: line.gear.id, startDate, endDate });
+    if (available < line.quantity) {
+      return { gear: line.gear, available };
+    }
+  }
+  return null;
+}
+
 function addKitToCart(kit, people, startDate, endDate) {
   const pricing = calcKitPricing(kit, people);
+  let allOk = true;
   pricing.lines.forEach((l) => {
-    addToCart(buildKitCartLine(l.gear, l.quantity, startDate, endDate));
+    const ok = addToCart(buildKitCartLine(l.gear, l.quantity, startDate, endDate));
+    if (!ok) allOk = false;
   });
   updateCartBadge();
-  showToast(`已將「${kit.name}」整組加入預約清單`);
+  showToast(allOk
+    ? `已將「${kit.name}」整組加入預約清單`
+    : '資料暫時無法儲存，請確認瀏覽器沒有停用網站儲存功能。');
 }
 
 function kitCardHTML(kit) {
@@ -141,6 +160,14 @@ function openKitModal(kit) {
     const days = daysBetween(startInput.value, endInput.value);
     if (days <= 0) { showError('請選擇有效的取貨與歸還日期。'); return; }
 
+    const shortage = findKitStockShortage(kit, people, startInput.value, endInput.value);
+    if (shortage) {
+      showError(shortage.available > 0
+        ? `${shortage.gear.name} 所選日期目前只剩 ${shortage.available} 件，請調整數量、日期或選擇其他裝備。`
+        : `${shortage.gear.name} 所選日期目前無庫存，請調整日期或選擇其他裝備。`);
+      return;
+    }
+
     if (!isSameRentalDateRange(startInput.value, endInput.value)) {
       openKitDateConflictModal(kit, people, startInput.value, endInput.value);
       return;
@@ -173,14 +200,25 @@ function openKitDateConflictModal(kit, people, newStart, newEnd) {
     </div>
   `, { labelledBy: 'kitConflictTitle' });
 
-  overlay.querySelector('#kitUseCurrent').addEventListener('click', () => {
-    addKitToCart(kit, people, current.startDate, current.endDate);
+  function confirmedAdd(startDate, endDate) {
+    const shortage = findKitStockShortage(kit, people, startDate, endDate);
+    if (shortage) {
+      closeModal();
+      showToast(shortage.available > 0
+        ? `${shortage.gear.name} 所選日期目前只剩 ${shortage.available} 件，請調整數量、日期或選擇其他裝備。`
+        : `${shortage.gear.name} 所選日期目前無庫存，請調整日期或選擇其他裝備。`);
+      return;
+    }
+    addKitToCart(kit, people, startDate, endDate);
     closeModal();
+  }
+
+  overlay.querySelector('#kitUseCurrent').addEventListener('click', () => {
+    confirmedAdd(current.startDate, current.endDate);
   });
   overlay.querySelector('#kitClearAndUseNew').addEventListener('click', () => {
     clearRentalLines();
-    addKitToCart(kit, people, newStart, newEnd);
-    closeModal();
+    confirmedAdd(newStart, newEnd);
   });
   overlay.querySelector('#kitConflictCancel').addEventListener('click', () => closeModal());
 }

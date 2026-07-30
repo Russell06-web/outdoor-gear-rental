@@ -9,6 +9,12 @@
 </head>
 <body>
 
+<noscript>
+  <div class="empty-state" style="max-width:640px; margin:32px auto">
+    <p>此頁面需要啟用 JavaScript 才能顯示訂單與折抵資料，請啟用 JavaScript 後重新整理頁面。</p>
+  </div>
+</noscript>
+
 <header class="site-header">
   <div class="container">
     <a href="index.html" class="brand">
@@ -43,13 +49,15 @@
         <h2>我的訂單</h2>
       </div>
 
-      <div class="account-layout">
+      <div id="accountFatalError" style="display:none"></div>
+
+      <div class="account-layout" id="accountLayout">
         <aside class="account-side">
           <div class="account-profile">
-            <div class="avatar">邱</div>
+            <div class="avatar">林</div>
             <div>
-              <div class="name">邱志綸</div>
-              <div class="email">russell@example.com</div>
+              <div class="name">林小山</div>
+              <div class="email">demo@gearloop.example</div>
             </div>
           </div>
           <nav class="side-nav">
