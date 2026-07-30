@@ -280,6 +280,29 @@ button { cursor: pointer; }
 }
 .hero-hygiene-note svg { width: 16px; height: 16px; stroke: var(--color-success); flex-shrink: 0; }
 
+/* Night-camp hero variant: isolated to the .hero--night modifier so the rest
+   of the (light) design system is untouched — remove the class to revert.
+   The ember glow is a second layer on .hero's own `background`, not a
+   separately-positioned pseudo-element, so it always covers exactly the
+   hero's real content height with no risk of the seam bug fixed above. */
+.hero--night {
+  background:
+    radial-gradient(ellipse at 25% 115%, rgba(217, 127, 53, 0.32), transparent 55%),
+    linear-gradient(160deg, var(--color-forest) 0%, #223b29 55%, #14211a 100%);
+}
+.hero--night .eyebrow { color: var(--color-accent); }
+.hero--night .hero-copy h1 { color: var(--color-bg); }
+.hero--night .hero-copy h1 em { color: var(--color-accent); }
+.hero--night .hero-copy p.lede { color: rgba(246, 243, 236, 0.68); }
+.hero--night .hero-cta-row .btn-outline { border-color: rgba(246, 243, 236, 0.4); color: var(--color-bg); }
+.hero--night .hero-cta-row .btn-outline:hover { background: rgba(246, 243, 236, 0.14); color: var(--color-bg); }
+.hero--night .hero-trust { border-top-color: rgba(246, 243, 236, 0.16); }
+.hero--night .hero-trust-item .num { color: var(--color-accent); }
+.hero--night .hero-trust-item .label { color: rgba(246, 243, 236, 0.55); }
+.hero--night .hero-hygiene-note { color: rgba(246, 243, 236, 0.6); }
+.hero--night .hero-hygiene-note svg { stroke: var(--color-accent); }
+.hero--night .hero-visual { box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.6); }
+
 .hero-visual {
   position: relative;
   aspect-ratio: 4 / 4.6;
