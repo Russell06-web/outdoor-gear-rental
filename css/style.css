@@ -289,27 +289,20 @@ button { cursor: pointer; }
    separately-positioned pseudo-element, so it always covers exactly the
    hero's real content height with no risk of the seam bug fixed above. */
 .hero--night {
-  background: #26392c;
+  background: #F6F3EC;
 }
-
-@media (min-width: 961px) {
-  .hero--night {
-    background:
-      linear-gradient(90deg, #26392c 0%, #26392c 64%, #f6f3ec 64%, #f6f3ec 100%);
-  }
-}
-.hero--night .eyebrow { color: var(--color-accent); }
-.hero--night .hero-copy h1 { color: var(--color-bg); }
-.hero--night .hero-copy h1 em { color: #e2b36f; }
-.hero--night .hero-copy p.lede { color: rgba(246, 243, 236, 0.68); }
-.hero--night .hero-cta-row .btn-outline { border-color: rgba(246, 243, 236, 0.4); color: var(--color-bg); }
-.hero--night .hero-cta-row .btn-outline:hover { background: rgba(246, 243, 236, 0.14); color: var(--color-bg); }
-.hero--night .hero-trust { border-top-color: rgba(246, 243, 236, 0.16); }
-.hero--night .hero-trust-item .num { color: var(--color-accent); }
-.hero--night .hero-trust-item .label { color: rgba(246, 243, 236, 0.55); }
-.hero--night .hero-hygiene-note { color: rgba(246, 243, 236, 0.6); }
-.hero--night .hero-hygiene-note svg { stroke: var(--color-accent); }
-.hero--night .hero-visual { box-shadow: 0 18px 42px -26px rgba(0, 0, 0, 0.5); }
+.hero--night .eyebrow { color: var(--color-accent-dark); }
+.hero--night .hero-copy h1 { color: var(--color-text); }
+.hero--night .hero-copy h1 em { color: var(--color-forest-dark); }
+.hero--night .hero-copy p.lede { color: var(--color-muted); }
+.hero--night .hero-cta-row .btn-outline { border-color: var(--color-text); color: var(--color-text); }
+.hero--night .hero-cta-row .btn-outline:hover { background: var(--color-text); color: #fff; }
+.hero--night .hero-trust { border-top-color: var(--color-border); }
+.hero--night .hero-trust-item .num { color: var(--color-accent-dark); }
+.hero--night .hero-trust-item .label { color: var(--color-muted); }
+.hero--night .hero-hygiene-note { color: var(--color-muted); }
+.hero--night .hero-hygiene-note svg { stroke: var(--color-success); }
+.hero--night .hero-visual { border: 1px solid var(--color-border); box-shadow: 0 18px 42px rgba(38, 36, 32, 0.12); }
 
 .hero-visual {
   position: relative;
