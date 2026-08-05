@@ -295,7 +295,7 @@ button { cursor: pointer; }
 @media (min-width: 961px) {
   .hero--night {
     background:
-      linear-gradient(90deg, #26392c 0%, #26392c 58%, #f6f3ec 58%, #f6f3ec 100%);
+      linear-gradient(90deg, #26392c 0%, #26392c 64%, #f6f3ec 64%, #f6f3ec 100%);
   }
 }
 .hero--night .eyebrow { color: var(--color-accent); }
